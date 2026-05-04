@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+  <rect width="600" height="800" fill="#0a0a0a"/>
+  <g transform="translate(175, 175)">
+    <rect width="250" height="250" fill="none" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+    <rect x="0" y="0" width="62.5" height="62.5" fill="#3B82F6" opacity="0.05"/>
+    <rect x="125" y="0" width="62.5" height="62.5" fill="#3B82F6" opacity="0.05"/>
+    <rect x="62.5" y="62.5" width="62.5" height="62.5" fill="#3B82F6" opacity="0.05"/>
+    <rect x="187.5" y="62.5" width="62.5" height="62.5" fill="#3B82F6" opacity="0.05"/>
+    <rect x="0" y="125" width="62.5" height="62.5" fill="#3B82F6" opacity="0.05"/>
+    <rect x="125" y="125" width="62.5" height="62.5" fill="#3B82F6" opacity="0.05"/>
+    <rect x="62.5" y="187.5" width="62.5" height="62.5" fill="#3B82F6" opacity="0.05"/>
+    <rect x="187.5" y="187.5" width="62.5" height="62.5" fill="#3B82F6" opacity="0.05"/>
+  </g>
+  <text x="300" y="500" text-anchor="middle" fill="white" font-size="60" font-family="serif" opacity="0.3">&#9822;</text>
+  <text x="300" y="570" text-anchor="middle" fill="white" font-size="24" font-weight="bold" font-family="sans-serif" opacity="0.4">KNIGHT'S TOUR</text>
+  <text x="300" y="610" text-anchor="middle" fill="white" font-size="14" font-family="monospace" opacity="0.2">BACKTRACKING</text>
+</svg>

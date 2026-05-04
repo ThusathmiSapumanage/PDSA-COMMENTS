@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+  <rect width="600" height="800" fill="#0a0a0a"/>
+  
+  <g transform="translate(175, 175)">
+    <rect width="250" height="250" fill="none" stroke="#3B82F6" stroke-width="1" opacity="0.3"/>
+    
+    <line x1="83.3" y1="0" x2="83.3" y2="250" stroke="#3B82F6" stroke-width="0.3" opacity="0.15"/>
+    <line x1="166.6" y1="0" x2="166.6" y2="250" stroke="#3B82F6" stroke-width="0.3" opacity="0.15"/>
+    <line x1="0" y1="83.3" x2="250" y2="83.3" stroke="#3B82F6" stroke-width="0.3" opacity="0.15"/>
+    <line x1="0" y1="166.6" x2="250" y2="166.6" stroke="#3B82F6" stroke-width="0.3" opacity="0.15"/>
+
+    <g transform="translate(190, 30) rotate(-15)" opacity="0.5">
+      <line x1="0" y1="0" x2="0" y2="40" stroke="#3B82F6" stroke-width="2"/>
+      <line x1="15" y1="0" x2="15" y2="40" stroke="#3B82F6" stroke-width="2"/>
+      <line x1="0" y1="10" x2="15" y2="10" stroke="#3B82F6" stroke-width="1.5"/>
+      <line x1="0" y1="20" x2="15" y2="20" stroke="#3B82F6" stroke-width="1.5"/>
+      <line x1="0" y1="30" x2="15" y2="30" stroke="#3B82F6" stroke-width="1.5"/>
+    </g>
+
+    <g transform="translate(30, 180) rotate(10)" opacity="0.5">
+      <line x1="0" y1="0" x2="0" y2="40" stroke="#3B82F6" stroke-width="2"/>
+      <line x1="15" y1="0" x2="15" y2="40" stroke="#3B82F6" stroke-width="2"/>
+      <line x1="0" y1="10" x2="15" y2="10" stroke="#3B82F6" stroke-width="1.5"/>
+      <line x1="0" y1="20" x2="15" y2="20" stroke="#3B82F6" stroke-width="1.5"/>
+      <line x1="0" y1="30" x2="15" y2="30" stroke="#3B82F6" stroke-width="1.5"/>
+    </g>
+
+    <path d="M110,110 Q125,90 140,110 T170,110" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+    <circle cx="170" cy="110" r="2" fill="#3B82F6" opacity="0.5"/>
+
+    <path d="M180,200 Q195,180 210,200 T240,200" fill="none" stroke="#3B82F6" stroke-width="2.5" stroke-linecap="round" opacity="0.5"/>
+    <circle cx="240" cy="200" r="2" fill="#3B82F6" opacity="0.5"/>
+  </g>
+
+  <text x="300" y="530" text-anchor="middle" fill="white" font-size="24" font-weight="bold" font-family="sans-serif" opacity="0.4">SNAKE &amp; LADDER</text>
+  <text x="300" y="570" text-anchor="middle" fill="white" font-size="14" font-family="monospace" opacity="0.2">SHORTEST PATH</text>
+</svg>

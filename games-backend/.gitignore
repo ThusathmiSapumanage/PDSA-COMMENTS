@@ -1,0 +1,66 @@
+# ==========================
+# Backend .gitignore
+# ==========================
+
+# Maven build
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# Maven wrapper jar
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+build/
+!**/src/main/**/build/
+!**/src/test/**/build/
+.gradle/
+
+# IDE — STS / Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+
+# IDE — IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# IDE — NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# IDE — VS Code
+.vscode/
+
+# Local config (DB credentials etc.)
+**/src/main/resources/application-local.properties
+**/src/main/resources/application-*.properties
+
+# Environment
+.env
+.env.*
+.env.local
+!.env.example
+
+# Logs
+*.log
+
+# Help
+HELP.md
+
+# Misc
+.DS_Store
+Thumbs.db
+
+.m2/
+target/
+*.jar
