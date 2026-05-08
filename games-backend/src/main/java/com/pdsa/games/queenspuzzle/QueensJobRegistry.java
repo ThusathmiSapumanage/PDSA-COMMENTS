@@ -89,17 +89,37 @@ public class QueensJobRegistry {
 
 	private final ConcurrentMap<Long, JobState> jobs = new ConcurrentHashMap<>();
 
+	/**
+	 * Registers a new async job state for a session.
+	 *
+	 * @param sessionId game session id
+	 * @param boardSize board dimension
+	 * @param queenCount number of queens in the job
+	 * @return created job state object
+	 */
 	public JobState register(long sessionId, int boardSize, int queenCount) {
 		JobState state = new JobState(sessionId, boardSize, queenCount);
 		jobs.put(sessionId, state);
 		return state;
 	}
 
+	/**
+	 * Retrieves the live job state for a session, cleaning up expired jobs first.
+	 *
+	 * @param sessionId game session id
+	 * @return current job state or null if none exists
+	 */
 	public JobState get(long sessionId) {
 		sweepExpired();
 		return jobs.get(sessionId);
 	}
 
+	/**
+	 * Creates an immutable snapshot of the current job state for polling.
+	 *
+	 * @param sessionId game session id
+	 * @return snapshot of job progress or null when no job exists
+	 */
 	public Snapshot snapshot(long sessionId) {
 		JobState s = get(sessionId);
 		if (s == null) return null;
@@ -112,6 +132,12 @@ public class QueensJobRegistry {
 		);
 	}
 
+	/**
+	 * Cancels an async job and marks it as cancelled when running.
+	 *
+	 * @param sessionId game session id
+	 * @return true when the job existed and cancellation was requested
+	 */
 	public boolean cancel(long sessionId) {
 		JobState s = jobs.get(sessionId);
 		if (s == null) return false;
@@ -123,6 +149,12 @@ public class QueensJobRegistry {
 		return true;
 	}
 
+	/**
+	 * Marks the async job as completed and records the total result count.
+	 *
+	 * @param sessionId game session id
+	 * @param totalSolutions discovered total solutions
+	 */
 	public void markCompleted(long sessionId, long totalSolutions) {
 		JobState s = jobs.get(sessionId);
 		if (s == null) return;
@@ -131,6 +163,12 @@ public class QueensJobRegistry {
 		s.completedAtMs = System.currentTimeMillis();
 	}
 
+	/**
+	 * Marks the async job as failed and stores the failure message.
+	 *
+	 * @param sessionId game session id
+	 * @param message failure message
+	 */
 	public void markFailed(long sessionId, String message) {
 		JobState s = jobs.get(sessionId);
 		if (s == null) return;
@@ -139,6 +177,9 @@ public class QueensJobRegistry {
 		s.completedAtMs = System.currentTimeMillis();
 	}
 
+	/**
+	 * Removes completed jobs that have exceeded the grace period.
+	 */
 	private void sweepExpired() {
 		long now = System.currentTimeMillis();
 		jobs.values().removeIf(state ->

@@ -12,6 +12,9 @@ import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
 
+/**
+ * Repository for Knights Tour persistence operations using direct JDBC access.
+ */
 @Repository
 public class KnightsTourRepository {
 
@@ -21,6 +24,12 @@ public class KnightsTourRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * Look up a player id by email address.
+     *
+     * @param playerEmail player email to search
+     * @return player id or null when not found
+     */
     public Long findPlayerIdByEmail(String playerEmail) {
         try {
             return jdbcTemplate.queryForObject(
@@ -33,6 +42,12 @@ public class KnightsTourRepository {
         }
     }
 
+    /**
+     * Check whether a player exists.
+     *
+     * @param playerId player identifier
+     * @return true when the player exists
+     */
     public boolean playerExists(Long playerId) {
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM Player WHERE Player_Id = ?",
@@ -42,6 +57,12 @@ public class KnightsTourRepository {
         return count != null && count > 0;
     }
 
+    /**
+     * Create a new game session record for the Knight's Tour game.
+     *
+     * @param playerId authenticated player identifier
+     * @return generated session id
+     */
     public Long createGameSession(Long playerId) {
         Integer gameId = findGameIdByName("Knight Tour");
 
@@ -69,6 +90,12 @@ public class KnightsTourRepository {
         return key.longValue();
     }
 
+    /**
+     * Look up a game id by its name.
+     *
+     * @param gameName name of the game
+     * @return game id or null when not found
+     */
     public Integer findGameIdByName(String gameName) {
         try {
             return jdbcTemplate.queryForObject(
@@ -81,6 +108,12 @@ public class KnightsTourRepository {
         }
     }
 
+    /**
+     * Look up an algorithm id by its name.
+     *
+     * @param algorithmName algorithm name
+     * @return algorithm id or null when not found
+     */
     public Integer findAlgorithmId(String algorithmName) {
         try {
             return jdbcTemplate.queryForObject(
@@ -93,6 +126,13 @@ public class KnightsTourRepository {
         }
     }
 
+    /**
+     * Verify that a session belongs to a specific player.
+     *
+     * @param sessionId session identifier
+     * @param playerId player identifier
+     * @return true when the session belongs to the player
+     */
     public boolean sessionBelongsToPlayer(Long sessionId, Long playerId) {
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM Game_Session WHERE Session_Id = ? AND Player_Id = ?",
@@ -103,6 +143,12 @@ public class KnightsTourRepository {
         return count != null && count > 0;
     }
 
+    /**
+     * Check whether a session exists.
+     *
+     * @param sessionId session identifier
+     * @return true when the session exists
+     */
     public boolean sessionExists(Long sessionId) {
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM Game_Session WHERE Session_Id = ?",
@@ -112,6 +158,15 @@ public class KnightsTourRepository {
         return count != null && count > 0;
     }
 
+    /**
+     * Persist Knight Tour game configuration details for a session.
+     *
+     * @param sessionId session identifier
+     * @param boardSize board size used for the round
+     * @param startX starting x coordinate
+     * @param startY starting y coordinate
+     * @param moveCount expected move count for a full tour
+     */
     public void saveKnightTourGame(Long sessionId, int boardSize, int startX, int startY, int moveCount) {
         jdbcTemplate.update(
                 "INSERT INTO Knight_Tour_Game (Session_Id, Board_Size, X_Start, Y_Start, Move_Count) VALUES (?, ?, ?, ?, ?)",
@@ -119,6 +174,12 @@ public class KnightsTourRepository {
         );
     }
 
+    /**
+     * Load the Knight Tour game configuration for a session.
+     *
+     * @param sessionId session identifier
+     * @return game configuration or null when none exists
+     */
     public KnightsTourModel.GameConfig findGameConfig(Long sessionId) {
         RowMapper<KnightsTourModel.GameConfig> rowMapper = (rs, rowNum) -> {
             KnightsTourModel.GameConfig config = new KnightsTourModel.GameConfig();
@@ -140,6 +201,13 @@ public class KnightsTourRepository {
         return results.isEmpty() ? null : results.get(0);
     }
 
+    /**
+     * Persist the knight move sequence for a particular algorithm run.
+     *
+     * @param sessionId session identifier
+     * @param algorithmId algorithm identifier
+     * @param moves list of knight moves
+     */
     public void saveKnightMoves(Long sessionId, int algorithmId, List<KnightsTourModel.Move> moves) {
         jdbcTemplate.batchUpdate(
                 "INSERT INTO Knight_Move (Session_Id, Algorithm_Id, Step_No, X_Value, Y_Value) VALUES (?, ?, ?, ?, ?)",
@@ -162,6 +230,14 @@ public class KnightsTourRepository {
         );
     }
 
+    /**
+     * Persist algorithm execution metadata for a Knight Tour run.
+     *
+     * @param sessionId session identifier
+     * @param algorithmId algorithm identifier
+     * @param executionTimeMs algorithm runtime in milliseconds
+     * @param outputResult execution status string
+     */
     public void saveAlgorithmExecution(Long sessionId, int algorithmId, double executionTimeMs, String outputResult) {
         jdbcTemplate.update(
                 "INSERT INTO Algorithm_Execute (Session_Id, Algorithm_Id, Execution_Time_MS, Output_Result) VALUES (?, ?, ?, ?)",
@@ -169,6 +245,13 @@ public class KnightsTourRepository {
         );
     }
 
+    /**
+     * Retrieve the saved correct move sequence for a given session and algorithm.
+     *
+     * @param sessionId session identifier
+     * @param algorithmId algorithm identifier
+     * @return correct move list ordered by step
+     */
     public List<KnightsTourModel.Move> findCorrectMoves(Long sessionId, int algorithmId) {
         RowMapper<KnightsTourModel.Move> rowMapper = (rs, rowNum) ->
                 new KnightsTourModel.Move(
@@ -188,6 +271,14 @@ public class KnightsTourRepository {
         );
     }
 
+    /**
+     * Persist a response summary for a Knight's Tour answer submission.
+     *
+     * @param sessionId session identifier
+     * @param responseSummary short summary of the submission
+     * @param isCorrect whether the submission was correct
+     * @return generated response id
+     */
     public Long saveResponse(Long sessionId, String responseSummary, boolean isCorrect) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -210,6 +301,12 @@ public class KnightsTourRepository {
         return key.longValue();
     }
 
+    /**
+     * Persist the move sequence associated with a response.
+     *
+     * @param responseId response identifier
+     * @param moves list of submitted moves
+     */
     public void saveResponseMoves(Long responseId, List<KnightsTourModel.Move> moves) {
         jdbcTemplate.batchUpdate(
                 "INSERT INTO Knight_Tour_Response_Move (Response_Id, Step_No, X_Value, Y_Value) VALUES (?, ?, ?, ?)",

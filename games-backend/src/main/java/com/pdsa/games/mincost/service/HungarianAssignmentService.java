@@ -114,6 +114,13 @@ public class HungarianAssignmentService {
 
     // --- REFACTORED HELPERS ---
 
+    /**
+     * Converts the final matching result into a list of assignment pairs.
+     *
+     * @param matrix the reduced cost matrix
+     * @param n the matrix size
+     * @return a list of assignments representing the optimal pairing
+     */
     private List<MinCostModel.Assignment> calculateOptimalPairs(double[][] matrix, int n) {
         int[] match = new int[n];
         Arrays.fill(match, -1);
@@ -128,11 +135,27 @@ public class HungarianAssignmentService {
         return result;
     }
 
+    /**
+     * Counts how many assignments can be found in the current matrix state.
+     *
+     * @param matrix the reduced cost matrix
+     * @param n the matrix size
+     * @param match buffer to record the matching
+     * @return the number of matched rows found
+     */
     private int countAssignments(double[][] matrix, int n, int[] match) {
         Arrays.fill(match, -1);
         return findMatch(matrix, n, match);
     }
 
+    /**
+     * Attempts to find a valid matching for every row using depth-first search.
+     *
+     * @param matrix the reduced cost matrix
+     * @param n the matrix size
+     * @param match the current matching state
+     * @return number of successful matches found
+     */
     private int findMatch(double[][] matrix, int n, int[] match) {
         int count = 0;
         boolean[] used = new boolean[n];
@@ -145,6 +168,16 @@ public class HungarianAssignmentService {
         return count;
     }
 
+    /**
+     * Depth-first search helper for building augmenting paths in the matching.
+     *
+     * @param u current row index
+     * @param matrix the reduced cost matrix
+     * @param n the matrix size
+     * @param used flags for columns already visited during this search
+     * @param match the current row-to-column matching
+     * @return true if a match can be extended or created for row u
+     */
     private boolean dfs(int u, double[][] matrix, int n, boolean[] used, int[] match) {
         for (int v = 0; v < n; v++) {
             if (matrix[u][v] == 0 && !used[v]) {
@@ -158,6 +191,16 @@ public class HungarianAssignmentService {
         return false;
     }
 
+    /**
+     * Covers zeros with the minimum number of lines by marking rows and columns.
+     * It is a key step in the Hungarian algorithm to decide where to adjust costs.
+     *
+     * @param matrix the reduced cost matrix
+     * @param n the matrix size
+     * @param rows output marker array for row coverage
+     * @param cols output marker array for column coverage
+     * @param match the current matching state used to identify unmatched rows
+     */
     private void coverZeros(double[][] matrix, int n, int[] rows, int[] cols, int[] match) {
         // Implementation of Konig's Theorem: Min Cover = (Unmarked rows) + (Marked columns)
         boolean[] markedRows = new boolean[n];
@@ -200,6 +243,16 @@ public class HungarianAssignmentService {
         for (int j = 0; j < n; j++) if (markedCols[j]) cols[j] = 1;
     }
 
+    /**
+     * Finds the smallest uncovered value in the matrix, which is used to shift
+     * the cost matrix and reveal additional zeros.
+     *
+     * @param matrix the reduced cost matrix
+     * @param n the matrix size
+     * @param rows row coverage markers
+     * @param cols column coverage markers
+     * @return the smallest uncovered cost value
+     */
     private double findDelta(double[][] matrix, int n, int[] rows, int[] cols) {
         double delta = Double.MAX_VALUE;
         for (int i = 0; i < n; i++) {
@@ -214,6 +267,16 @@ public class HungarianAssignmentService {
         return (delta == Double.MAX_VALUE) ? 0 : delta;
     }
 
+    /**
+     * Applies the delta adjustment by subtracting it from uncovered values and
+     * adding it to values covered twice.
+     *
+     * @param matrix the reduced cost matrix
+     * @param n the matrix size
+     * @param rows row coverage markers
+     * @param cols column coverage markers
+     * @param delta the smallest uncovered value to apply
+     */
     private void applyDelta(double[][] matrix, int n, int[] rows, int[] cols, double delta) {
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
@@ -225,6 +288,13 @@ public class HungarianAssignmentService {
         }
     }
 
+    /**
+     * Converts a double matrix to integer values for visualization and logging.
+     *
+     * @param matrix the matrix with double values
+     * @param n the matrix size
+     * @return an integer copy of the matrix
+     */
     private int[][] convertToInt(double[][] matrix, int n) {
         int[][] res = new int[n][n];
         for (int i = 0; i < n; i++) {
@@ -235,6 +305,12 @@ public class HungarianAssignmentService {
         return res;
     }
 
+    /**
+     * Converts an int array into a Boolean list for step output.
+     *
+     * @param arr an array containing 0 or 1 markers
+     * @return a list of booleans representing coverage state
+     */
     private List<Boolean> toBoolList(int[] arr) {
         List<Boolean> list = new ArrayList<>();
         for (int val : arr) list.add(val == 1);

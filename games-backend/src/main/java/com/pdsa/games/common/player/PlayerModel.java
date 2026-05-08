@@ -10,6 +10,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+/**
+ * JPA entity representing a player account used for authentication and game sessions.
+ */
 @Data
 @Entity
 @Table(name = "Player")

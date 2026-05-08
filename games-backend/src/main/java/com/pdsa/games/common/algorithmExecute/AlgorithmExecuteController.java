@@ -36,6 +36,12 @@ public class AlgorithmExecuteController {
 		this.algorithmExecuteService = algorithmExecuteService;
 	}
 
+	/**
+	 * Create a new algorithm execution record.
+	 *
+	 * @param algorithmExecute execution payload from the request body
+	 * @return created execution record with HTTP 201 status
+	 */
 	@PostMapping
 	@Operation(
 			summary = "Create algorithm execution record",
@@ -71,6 +77,11 @@ public class AlgorithmExecuteController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(savedAlgorithmExecute);
 	}
 
+	/**
+	 * Retrieve all algorithm execution records.
+	 *
+	 * @return list of all execution records with HTTP 200 status
+	 */
 	@GetMapping
 	@Operation(summary = "List execution records", description = "Returns all algorithm execution records.")
 	@ApiResponses({
@@ -88,6 +99,12 @@ public class AlgorithmExecuteController {
 		return ResponseEntity.ok(algorithmExecuteService.getAllAlgorithmExecutions());
 	}
 
+	/**
+	 * Retrieve execution records for a specific session.
+	 *
+	 * @param sessionId identifier of the session to filter by
+	 * @return list of records for the session, or HTTP 404 when none are found
+	 */
 	@GetMapping("/session/{sessionId}")
 	@Operation(summary = "List execution records by session id", description = "Returns execution records for the specified session id.")
 	@ApiResponses({
@@ -112,6 +129,12 @@ public class AlgorithmExecuteController {
 		return ResponseEntity.ok(records);
 	}
 
+	/**
+	 * Retrieve execution records for a specific game.
+	 *
+	 * @param gameId identifier of the game to filter by
+	 * @return list of records for the game, or HTTP 404 when none are found
+	 */
 	@GetMapping("/game/{gameId}")
 	@Operation(summary = "List execution records by game id", description = "Returns execution records for the specified game id.")
 	@ApiResponses({
@@ -136,6 +159,12 @@ public class AlgorithmExecuteController {
 		return ResponseEntity.ok(records);
 	}
 
+	/**
+	 * Retrieve execution records filtered by result status.
+	 *
+	 * @param outputResult execution result to filter by
+	 * @return list of matching execution records, or HTTP 404 when none are found
+	 */
 	@GetMapping("/output/{outputResult}")
 	@Operation(summary = "List execution records by output result", description = "Returns execution records filtered by output result type.")
 	@ApiResponses({
@@ -160,6 +189,13 @@ public class AlgorithmExecuteController {
 		return ResponseEntity.ok(records);
 	}
 
+	/**
+	 * Fetch a single execution record by its composite id.
+	 *
+	 * @param sessionId identifier of the session
+	 * @param algorithmId identifier of the algorithm
+	 * @return execution record when found, or HTTP 404 when absent
+	 */
 	@GetMapping("/{sessionId}/{algorithmId}")
 	@Operation(summary = "Get execution record by composite id", description = "Fetches a single execution record by sessionId and algorithmId.")
 	@ApiResponses({
@@ -181,6 +217,14 @@ public class AlgorithmExecuteController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
+	/**
+	 * Replace an existing execution record with the provided payload.
+	 *
+	 * @param sessionId identifier of the session
+	 * @param algorithmId identifier of the algorithm
+	 * @param algorithmExecute new execution payload
+	 * @return updated execution record when found, or HTTP 404 when absent
+	 */
 	@PutMapping("/{sessionId}/{algorithmId}")
 	@Operation(summary = "Replace execution record", description = "Fully updates the execution record identified by sessionId and algorithmId.")
 	@ApiResponses({
@@ -208,6 +252,14 @@ public class AlgorithmExecuteController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
+	/**
+	 * Partially update an execution record.
+	 *
+	 * @param sessionId identifier of the session
+	 * @param algorithmId identifier of the algorithm
+	 * @param algorithmExecute payload containing fields to patch
+	 * @return patched execution record when found, or HTTP 404 when absent
+	 */
 	@PatchMapping("/{sessionId}/{algorithmId}")
 	@Operation(summary = "Partially update execution record", description = "Partially updates mutable fields of the execution record identified by sessionId and algorithmId.")
 	@ApiResponses({
@@ -235,6 +287,13 @@ public class AlgorithmExecuteController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
+	/**
+	 * Delete the execution record identified by sessionId and algorithmId.
+	 *
+	 * @param sessionId identifier of the session
+	 * @param algorithmId identifier of the algorithm
+	 * @return HTTP 204 when deleted, or HTTP 404 when absent
+	 */
 	@DeleteMapping("/{sessionId}/{algorithmId}")
 	@Operation(summary = "Delete execution record", description = "Deletes the execution record identified by sessionId and algorithmId.")
 	@ApiResponses({

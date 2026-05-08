@@ -33,6 +33,14 @@ public class MinCostService {
         this.repository = repository;
     }
 
+    /**
+     * Starts a new Min Cost game run by validating input, generating a random
+     * matrix, executing both assignment algorithms, recording the results, and
+     * building the API response payload.
+     *
+     * @param request the request payload containing matrix size and cost bounds
+     * @return the full game response including assignments, logs, costs, and timings
+     */
     @Transactional
     public MinCostModel.GameResponse startGame(MinCostModel.StartRequest request) {
         int n = pickN(request.getN());
@@ -78,10 +86,20 @@ public class MinCostService {
         );
     }
 
+    /**
+     * Retrieves the last 10 min-cost game history items from the database.
+     *
+     * @return list of history items for chart display
+     */
     public List<MinCostModel.HistoryItem> getHistory() {
         return repository.getHistory();
     }
 
+    /**
+     * Persists the game run metadata and execution times for both algorithms.
+     * The method is defensive against persistence failures so the game result
+     * can still be returned even if DB logging fails.
+     */
     private void saveGameRun(MinCostModel.StartRequest request,
                              int n,
                              AlgorithmSolveResult greedy,
@@ -107,6 +125,14 @@ public class MinCostService {
         }
     }
 
+    /**
+     * Builds a random N x N cost matrix inside the requested cost range.
+     *
+     * @param n the size of the square matrix
+     * @param min the minimum allowed cell cost
+     * @param max the maximum allowed cell cost
+     * @return a randomly generated cost matrix for the game
+     */
     private int[][] generateMatrix(int n, int min, int max) {
         int[][] matrix = new int[n][n];
         for (int i = 0; i < n; i++) {
@@ -117,6 +143,13 @@ public class MinCostService {
         return matrix;
     }
 
+    /**
+     * Determines the matrix size to use, returning the requested size or a
+     * randomly chosen value when none is provided.
+     *
+     * @param requestedN optional requested matrix dimension
+     * @return the chosen matrix size
+     */
     private int pickN(Integer requestedN) {
         if (requestedN != null) {
             return requestedN;
@@ -124,6 +157,12 @@ public class MinCostService {
         return 50 + random.nextInt(51);
     }
 
+    /**
+     * Converts nanosecond timing values into milliseconds with 3 decimal places.
+     *
+     * @param nanos a duration in nanoseconds
+     * @return the duration in milliseconds
+     */
     private double nanosToMs(long nanos) {
         return Math.round((nanos / 1_000_000.0) * 1000.0) / 1000.0;
     }

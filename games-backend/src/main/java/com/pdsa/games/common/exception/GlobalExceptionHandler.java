@@ -16,6 +16,13 @@ import org.springframework.web.server.ResponseStatusException;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Handle Spring exceptions that carry an explicit HTTP status.
+     *
+     * @param ex the exception containing status and reason
+     * @param request servlet request used to record the request URI
+     * @return problem detail response with the original status code
+     */
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ProblemDetail> handleResponseStatusException(
             ResponseStatusException ex,
@@ -28,6 +35,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(ex.getStatusCode()).body(body);
     }
 
+    /**
+     * Handle database constraint exceptions and return a user-friendly bad request.
+     *
+     * @param ex the root exception from database or JPA system errors
+     * @param request servlet request used to record the request URI
+     * @return problem detail response with HTTP 400 Bad Request
+     */
     @ExceptionHandler({DataIntegrityViolationException.class, JpaSystemException.class})
     public ResponseEntity<ProblemDetail> handleDatabaseConstraintErrors(
             RuntimeException ex,
@@ -49,6 +63,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(body);
     }
 
+    /**
+     * Traverse the exception chain to find the original root cause.
+     *
+     * @param ex exception to inspect
+     * @return deepest nested cause, or the original exception if none
+     */
     private Throwable getRootCause(Throwable ex) {
         Throwable current = ex;
         while (current != null && current.getCause() != null) {
@@ -57,6 +77,13 @@ public class GlobalExceptionHandler {
         return current;
     }
 
+    /**
+     * Check whether text contains the specified needle, ignoring case.
+     *
+     * @param text text to search within
+     * @param needle substring to look for
+     * @return true when needle appears in text, false otherwise
+     */
     private boolean containsIgnoreCase(String text, String needle) {
         return text != null && needle != null && text.toLowerCase().contains(needle.toLowerCase());
     }

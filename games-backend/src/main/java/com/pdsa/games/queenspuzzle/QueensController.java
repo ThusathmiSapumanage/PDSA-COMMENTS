@@ -21,6 +21,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
+/**
+ * REST controller for the Sixteen Queens puzzle endpoints.
+ *
+ * Exposes round start, submission, status, progress, and cancel operations
+ * for authenticated players.
+ */
 @RestController
 @RequestMapping("/sixteen-queens")
 @CrossOrigin
@@ -48,6 +54,14 @@ public class QueensController {
 	    @ApiResponse(responseCode = "401", description = "User is not authenticated"),
 	    @ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
+    /**
+     * Begins a new Sixteen Queens round by generating solutions and storing
+     * session metadata for the authenticated player.
+     *
+     * @param request start request payload
+     * @param authentication authenticated user context
+     * @return start response containing session details and timing information
+     */
     public ResponseEntity<QueensModel.StartResponse> startRound(
 	    @RequestBody QueensModel.StartRequest request,
 	    Authentication authentication) {
@@ -69,6 +83,13 @@ public class QueensController {
 	    @ApiResponse(responseCode = "401", description = "User is not authenticated"),
 	    @ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
+    /**
+     * Validates a submitted queens placement and records discovered solutions.
+     *
+     * @param request submission payload containing session and queen positions
+     * @param authentication authenticated user context
+     * @return response indicating whether the submission is correct and discovery status
+     */
     public ResponseEntity<QueensModel.SubmitResponse> submitAnswer(
 	    @RequestBody QueensModel.SubmitRequest request,
 	    Authentication authentication) {
@@ -90,6 +111,14 @@ public class QueensController {
 	    @ApiResponse(responseCode = "401", description = "User is not authenticated"),
 	    @ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
+    /**
+     * Returns the current status of the player's Sixteen Queens session,
+     * including total and discovered solution counts.
+     *
+     * @param sessionId game session identifier
+     * @param authentication authenticated user context
+     * @return status response for the session
+     */
     public ResponseEntity<QueensModel.StatusResponse> getStatus(
 	    @PathVariable Long sessionId,
 	    Authentication authentication) {
@@ -110,6 +139,13 @@ public class QueensController {
 	    @ApiResponse(responseCode = "401", description = "User is not authenticated"),
 	    @ApiResponse(responseCode = "404", description = "No async job tracked for this session")
     })
+    /**
+     * Polls live progress for an asynchronous full solve job.
+     *
+     * @param sessionId game session identifier
+     * @param authentication authenticated user context
+     * @return progress snapshot containing live counts and elapsed times
+     */
     public ResponseEntity<QueensModel.ProgressResponse> getProgress(
 	    @PathVariable Long sessionId,
 	    Authentication authentication) {
@@ -121,6 +157,13 @@ public class QueensController {
 	    summary = "Cancel an async Sixteen Queens job",
 	    description = "Signals the async solvers to stop. Returns 200 if a job was cancelled or already done, 404 otherwise."
     )
+    /**
+     * Cancels an async solve job for the authenticated player's session.
+     *
+     * @param sessionId game session identifier
+     * @param authentication authenticated user context
+     * @return HTTP 200 when cancelled or already complete, 404 when no job exists
+     */
     public ResponseEntity<Void> cancel(
 	    @PathVariable Long sessionId,
 	    Authentication authentication) {
@@ -128,6 +171,12 @@ public class QueensController {
 	return cancelled ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
 
+    /**
+     * Extracts the authenticated user's email from Spring Security context.
+     *
+     * @param authentication security authentication object
+     * @return authenticated email address
+     */
     private String getAuthenticatedEmail(Authentication authentication) {
 	if (authentication == null
 		|| !authentication.isAuthenticated()

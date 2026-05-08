@@ -17,7 +17,9 @@ public class GreedyAssignmentService {
 
     /**
      * Solve the matrix using greedy method.
-     * matrix: the N x N cost grid.
+     *
+     * @param matrix the N x N cost grid to assign
+     * @return the greedy result containing assignments and logs
      */
     public AlgorithmSolveResult solve(int[][] matrix) {
         // Defensive check: if matrix is missing, we can't do anything!

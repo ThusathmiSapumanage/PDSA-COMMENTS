@@ -12,7 +12,19 @@ import org.springframework.stereotype.Repository;
 public interface AlgorithmRepository extends JpaRepository<AlgorithmModel, Integer> {
 
     @Query(value = "SELECT * FROM Algorithm WHERE Game_Id = :gameId", nativeQuery = true)
+    /**
+     * Retrieve all algorithms associated with a specific game identifier.
+     *
+     * @param gameId identifier of the game to filter algorithms by
+     * @return list of algorithms for the requested game
+     */
     List<AlgorithmModel> findAllByGameId(@Param("gameId") Integer gameId);
 
+    /**
+     * Find an algorithm by its unique name.
+     *
+     * @param algorithmName unique algorithm name to search for
+     * @return optional algorithm matching the name
+     */
     Optional<AlgorithmModel> findByAlgorithmName(String algorithmName);
 }

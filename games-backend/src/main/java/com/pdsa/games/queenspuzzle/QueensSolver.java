@@ -12,6 +12,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.LongAdder;
 
+/**
+ * Bitmask-based queens solver used by Sixteen Queens service paths.
+ *
+ * Provides synchronous, threaded, progress-aware, and timed solve methods for
+ * board configurations up to the supported bitmask limit.
+ */
 class QueensSolver {
 
     static final long DEFAULT_TIME_BUDGET_MS = 15_000L;
@@ -35,6 +41,13 @@ class QueensSolver {
 
     // ---------------- Count-only ----------------
 
+    /**
+     * Counts solutions sequentially using bitmask backtracking.
+     *
+     * @param boardSize board dimension
+     * @param queenCount number of queens
+     * @return number of valid placements
+     */
     int solveSequentialCount(int boardSize, int queenCount) {
         validate(boardSize, queenCount);
         int boardMask = boardMask(boardSize);
@@ -44,6 +57,13 @@ class QueensSolver {
         return clampToInt(counter[0]);
     }
 
+    /**
+     * Counts solutions using a thread pool and seeded subtrees.
+     *
+     * @param boardSize board dimension
+     * @param queenCount number of queens
+     * @return number of valid placements
+     */
     int solveThreadedCount(int boardSize, int queenCount) {
         validate(boardSize, queenCount);
         int boardMask = boardMask(boardSize);
@@ -135,6 +155,9 @@ class QueensSolver {
         }
     }
 
+    /**
+     * Backtracking helper that publishes count progress and honors cancellation.
+     */
     private void progressBacktrack(int row, int placed, int n, int qc,
                                    int cols, int ld, int rd, int boardMask,
                                    long[] local, long[] lastPublished,
@@ -169,6 +192,15 @@ class QueensSolver {
 
     // ---------------- Timed (sample + count) ----------------
 
+    /**
+     * Runs a timed sequential solve and stores a sample of found solutions.
+     *
+     * @param boardSize board dimension
+     * @param queenCount number of queens
+     * @param timeBudgetMs maximum search time in milliseconds
+     * @param maxStored max sample solutions to store
+     * @return timed result containing count, elapsed time, and sample solutions
+     */
     TimedResult solveSequentialTimed(int boardSize, int queenCount, long timeBudgetMs, int maxStored) {
         validate(boardSize, queenCount);
         long startNs = System.nanoTime();
@@ -184,6 +216,15 @@ class QueensSolver {
         return new TimedResult(sample, clampToInt(counter[0]), elapsedMs, hit);
     }
 
+    /**
+     * Runs a timed threaded solve and stores a sample of found solutions.
+     *
+     * @param boardSize board dimension
+     * @param queenCount number of queens
+     * @param timeBudgetMs maximum search time in milliseconds
+     * @param maxStored max sample solutions to store
+     * @return timed result containing count, elapsed time, and sample solutions
+     */
     TimedResult solveThreadedTimed(int boardSize, int queenCount, long timeBudgetMs, int maxStored) {
         validate(boardSize, queenCount);
         long startNs = System.nanoTime();
@@ -228,6 +269,13 @@ class QueensSolver {
 
     // ---------------- Collect (full list — used by tests and small boards only) ----------------
 
+    /**
+     * Collects all solutions sequentially, primarily used for tests and small boards.
+     *
+     * @param boardSize board dimension
+     * @param queenCount number of queens
+     * @return list of all valid solutions
+     */
     List<int[]> solveSequential(int boardSize, int queenCount) {
         validate(boardSize, queenCount);
         int boardMask = boardMask(boardSize);
@@ -239,6 +287,9 @@ class QueensSolver {
 
     // ---------------- Core bitmask backtrack ----------------
 
+    /**
+     * Recursively counts placements for the standard bitmask backtracking path.
+     */
     private void countBacktrack(int row, int placed, int n, int qc,
                                 int cols, int ld, int rd, int boardMask,
                                 int[] rowToCol, long[] counter) {
@@ -266,6 +317,9 @@ class QueensSolver {
         }
     }
 
+    /**
+     * Recursively searches while collecting a sample of solutions and respecting a deadline.
+     */
     private boolean timedBacktrack(int row, int placed, int n, int qc,
                                    int cols, int ld, int rd, int boardMask,
                                    int[] rowToCol, List<int[]> sample,
@@ -300,6 +354,9 @@ class QueensSolver {
         return false;
     }
 
+    /**
+     * Recursively searches in a threaded context while sharing sample storage and count.
+     */
     private boolean timedBacktrackShared(int row, int placed, int n, int qc,
                                          int cols, int ld, int rd, int boardMask,
                                          int[] rowToCol, List<int[]> sample,
@@ -334,6 +391,9 @@ class QueensSolver {
         return false;
     }
 
+    /**
+     * Recursively collects every valid placement into the solutions list.
+     */
     private void collectBacktrack(int row, int placed, int n, int qc,
                                   int cols, int ld, int rd, int boardMask,
                                   int[] rowToCol, List<int[]> solutions) {
@@ -363,6 +423,14 @@ class QueensSolver {
 
     // ---------------- Seed partitioning for parallelism ----------------
 
+    /**
+     * Builds partial seed states for parallel search partitioning.
+     *
+     * @param boardSize board dimension
+     * @param queenCount number of queens
+     * @param depth seed depth to partition
+     * @return list of seed states
+     */
     private List<Seed> buildSeeds(int boardSize, int queenCount, int depth) {
         int boardMask = boardMask(boardSize);
         int[] rowToCol = initRowToCol(boardSize);
@@ -371,6 +439,9 @@ class QueensSolver {
         return seeds;
     }
 
+    /**
+     * Recursively generates seed states until the target depth is reached.
+     */
     private void buildSeedsRec(int row, int placed, int n, int qc, int depth,
                                int cols, int ld, int rd, int boardMask,
                                int[] rowToCol, List<Seed> seeds) {
@@ -398,22 +469,34 @@ class QueensSolver {
 
     // ---------------- Helpers ----------------
 
+    /**
+     * Initializes an empty row-to-column mapping for a board.
+     */
     private int[] initRowToCol(int boardSize) {
         int[] r = new int[boardSize];
         for (int i = 0; i < boardSize; i++) r[i] = -1;
         return r;
     }
 
+    /**
+     * Copies the current board placement array.
+     */
     private int[] copyBoard(int[] r) {
         int[] c = new int[r.length];
         System.arraycopy(r, 0, c, 0, r.length);
         return c;
     }
 
+    /**
+     * Computes a bitmask representing the available columns for the board.
+     */
     private int boardMask(int n) {
         return n >= 31 ? 0x7FFFFFFF : (1 << n) - 1;
     }
 
+    /**
+     * Validates board and queen configuration constraints.
+     */
     private void validate(int boardSize, int queenCount) {
         if (boardSize < 1 || boardSize > MAX_SUPPORTED_BOARD) {
             throw new IllegalArgumentException(
@@ -424,6 +507,9 @@ class QueensSolver {
         }
     }
 
+    /**
+     * Clamps a long count value to the integer range.
+     */
     private int clampToInt(long value) {
         if (value < 0) return 0;
         return value > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) value;

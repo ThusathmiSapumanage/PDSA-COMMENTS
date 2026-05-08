@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * JPA entity representing a single game session.
+ */
 @Entity
 @Table(name = "Game_Session", indexes = @Index(name = "idx_created_at", columnList = "Created_At"))
 @Data
@@ -27,6 +30,9 @@ public class GameSessionModel {
     @Column(name = "Created_At", nullable = false, updatable = false, columnDefinition = "DATETIME DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    /**
+     * Ensure the creation timestamp is set before the entity is persisted.
+     */
     @PrePersist
     protected void onCreate() {
         if (createdAt == null) {

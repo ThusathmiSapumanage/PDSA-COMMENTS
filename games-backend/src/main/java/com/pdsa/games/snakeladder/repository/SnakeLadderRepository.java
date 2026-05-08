@@ -30,6 +30,11 @@ public class SnakeLadderRepository {
 
     private final JdbcTemplate jdbcTemplate;
 
+    /**
+     * Constructs the repository with the configured JdbcTemplate.
+     *
+     * @param jdbcTemplate Spring JDBC template used for database access
+     */
     public SnakeLadderRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
@@ -56,6 +61,8 @@ public class SnakeLadderRepository {
 
     /**
      * Clean up all old data for a session to avoid duplicates.
+     *
+     * @param sessionId session id to delete data for
      */
     private void cleanupOldSessionData(int sessionId) {
         jdbcTemplate.update("DELETE FROM Snake_And_Ladder_Game WHERE Session_Id = ?", sessionId);
@@ -185,6 +192,12 @@ public class SnakeLadderRepository {
     // Game_Session creation and player lookup
     // -------------------------------------------------------------------------
 
+    /**
+     * Returns whether the given player exists in the Player table.
+     *
+     * @param playerId player id
+     * @return true when the player exists
+     */
     public boolean playerExists(int playerId) {
         Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM Player WHERE Player_Id = ?",
@@ -193,6 +206,12 @@ public class SnakeLadderRepository {
         return count != null && count > 0;
     }
 
+    /**
+     * Creates a new Game_Session record for the given player.
+     *
+     * @param playerId player id
+     * @return generated session id
+     */
     public int createGameSession(int playerId) {
         int gameId = ensureGameId();
 
@@ -215,6 +234,11 @@ public class SnakeLadderRepository {
         return key.intValue();
     }
 
+    /**
+     * Ensures the Snake and Ladder game exists in the Game table and returns its id.
+     *
+     * @return game id for Snake and Ladder
+     */
     private int ensureGameId() {
         Integer gameId = jdbcTemplate.query(
                 "SELECT Game_Id FROM Game WHERE Game_Name = ?",

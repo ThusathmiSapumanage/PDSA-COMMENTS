@@ -17,6 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Service layer for the Sixteen Queens puzzle.
+ *
+ * Handles round creation, solution discovery, async progress tracking,
+ * and persistence of player session and algorithm execution data.
+ */
 @Service
 public class QueensService {
 
@@ -52,10 +58,20 @@ public class QueensService {
 	}
 
 	@PreDestroy
+	/**
+	 * Shuts down the async solver executor service when the application stops.
+	 */
 	public void shutdownExecutor() {
 		asyncExecutor.shutdownNow();
 	}
 
+	/**
+	 * Starts a new Sixteen Queens round for the authenticated player.
+	 *
+	 * @param request incoming start request payload
+	 * @param authenticatedEmail authenticated player's email address
+	 * @return start response containing session details and timing information
+	 */
 	@Transactional
 	public QueensModel.StartResponse startRound(QueensModel.StartRequest request, String authenticatedEmail) {
 		Long playerId = resolveAuthenticatedPlayerId(authenticatedEmail);
@@ -161,6 +177,12 @@ public class QueensService {
 		return response;
 	}
 
+	/**
+	 * Executes the sequential solver in a background thread and stores progress.
+	 *
+	 * @param job current async job state
+	 * @param sequentialAlgoId algorithm identifier for persistence
+	 */
 	private void runAsyncSequential(QueensJobRegistry.JobState job, Integer sequentialAlgoId) {
 		log.info("Async sequential task entered for session {}", job.sessionId);
 		long startNs = System.nanoTime();
@@ -183,6 +205,12 @@ public class QueensService {
 		}
 	}
 
+	/**
+	 * Executes the threaded solver in a background thread and stores progress.
+	 *
+	 * @param job current async job state
+	 * @param threadedAlgoId algorithm identifier for persistence
+	 */
 	private void runAsyncThreaded(QueensJobRegistry.JobState job, Integer threadedAlgoId) {
 		log.info("Async threaded task entered for session {}", job.sessionId);
 		long startNs = System.nanoTime();
@@ -210,6 +238,12 @@ public class QueensService {
 	 * it.
 	 * Uses the threaded count (canonical) if both completed without cancel; else
 	 * skip caching.
+	 */
+	/**
+	 * Finalizes an async job when both sequential and threaded solvers complete.
+	 *
+	 * @param job current job state
+	 * @param myCount count discovered by the completing solver
 	 */
 	private void tryFinishJob(QueensJobRegistry.JobState job, long myCount) {
 		if (!(job.sequentialDone.get() && job.threadedDone.get()))
@@ -239,6 +273,13 @@ public class QueensService {
 		}
 	}
 
+	/**
+	 * Retrieves live progress for an async Sixteen Queens solve job.
+	 *
+	 * @param sessionId game session identifier
+	 * @param authenticatedEmail authenticated player's email
+	 * @return progress response with counts, timings, and status
+	 */
 	public QueensModel.ProgressResponse getProgress(Long sessionId, String authenticatedEmail) {
 		if (sessionId == null || sessionId <= 0) {
 			throw new IllegalArgumentException("Valid sessionId is required.");
@@ -270,6 +311,20 @@ public class QueensService {
 		return response;
 	}
 
+	/**
+	 * Cancels an active async Sixteen Queens solve job for the authenticated player.
+	 *
+	 * @param sessionId game session identifier
+	 * @param authenticatedEmail authenticated player's email
+	 * @return true when the job cancellation was requested, false when no active job exists
+	 */
+	/**
+	 * Cancels an active async Sixteen Queens solve job for the authenticated player.
+	 *
+	 * @param sessionId game session identifier
+	 * @param authenticatedEmail authenticated player's email
+	 * @return true when the job cancellation was requested, false when no active job exists
+	 */
 	public boolean cancelJob(Long sessionId, String authenticatedEmail) {
 		if (sessionId == null || sessionId <= 0) {
 			throw new IllegalArgumentException("Valid sessionId is required.");
@@ -281,6 +336,19 @@ public class QueensService {
 		return jobRegistry.cancel(sessionId);
 	}
 
+	/**
+	 * Runs a synchronous full solve for a given board and queen count.
+	 *
+	 * Uses cached results if available unless skipCache is true.
+	 *
+	 * @param sessionId game session identifier
+	 * @param boardSize board dimension
+	 * @param queenCount number of queens
+	 * @param sequentialAlgoId sequential algorithm persistence identifier
+	 * @param threadedAlgoId threaded algorithm persistence identifier
+	 * @param skipCache whether to bypass cached counts
+	 * @return start response containing full solve results
+	 */
 	private QueensModel.StartResponse runFullSolve(Long sessionId, int boardSize, int queenCount,
 			Integer sequentialAlgoId, Integer threadedAlgoId,
 			boolean skipCache) {
@@ -339,6 +407,17 @@ public class QueensService {
 		return response;
 	}
 
+	/**
+	 * Runs a timed solve for a board configuration and returns partial or full results.
+	 *
+	 * @param sessionId game session identifier
+	 * @param boardSize board dimension
+	 * @param queenCount number of queens
+	 * @param timeBudgetMs maximum allowed solve time per algorithm
+	 * @param sequentialAlgoId sequential algorithm persistence identifier
+	 * @param threadedAlgoId threaded algorithm persistence identifier
+	 * @return start response containing timed execution metrics and solution counts
+	 */
 	private QueensModel.StartResponse runTimedSolve(Long sessionId, int boardSize, int queenCount,
 			long timeBudgetMs,
 			Integer sequentialAlgoId, Integer threadedAlgoId) {
@@ -375,6 +454,13 @@ public class QueensService {
 		return response;
 	}
 
+	/**
+	 * Validates and records a submitted queens solution for the player's session.
+	 *
+	 * @param request submitted solution payload
+	 * @param authenticatedEmail authenticated player's email
+	 * @return submit response with correctness and discovery state
+	 */
 	@Transactional
 	public QueensModel.SubmitResponse submitAnswer(QueensModel.SubmitRequest request, String authenticatedEmail) {
 		if (request == null) {
@@ -467,6 +553,13 @@ public class QueensService {
 				message);
 	}
 
+	/**
+	 * Loads the total and discovered solution counts for a session.
+	 *
+	 * @param sessionId game session identifier
+	 * @param authenticatedEmail authenticated player's email
+	 * @return status response with current solution discovery counts
+	 */
 	@Transactional(readOnly = true)
 	public QueensModel.StatusResponse getStatus(Long sessionId, String authenticatedEmail) {
 		if (sessionId == null || sessionId <= 0) {
@@ -493,6 +586,12 @@ public class QueensService {
 		return response;
 	}
 
+	/**
+	 * Resolves the authenticated player's database id from their email.
+	 *
+	 * @param authenticatedEmail authenticated player's email
+	 * @return player id
+	 */
 	private Long resolveAuthenticatedPlayerId(String authenticatedEmail) {
 		if (authenticatedEmail == null || authenticatedEmail.isBlank()) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authenticated user email is missing.");
@@ -507,6 +606,12 @@ public class QueensService {
 		return playerId;
 	}
 
+	/**
+	 * Normalizes a requested time budget to the configured min/max bounds.
+	 *
+	 * @param requestedBudget requested budget in milliseconds
+	 * @return normalized budget in milliseconds, or null if no budget was requested
+	 */
 	private Long normalizeBudget(Long requestedBudget) {
 		if (requestedBudget == null) {
 			return null;
@@ -521,6 +626,12 @@ public class QueensService {
 		return value;
 	}
 
+	/**
+	 * Validates that the board configuration is supported and queen count is valid.
+	 *
+	 * @param boardSize board dimension
+	 * @param queenCount number of queens
+	 */
 	private void validateBoardConfig(int boardSize, int queenCount) {
 		if (boardSize != BOARD_SIZE_8 && boardSize != BOARD_SIZE_16) {
 			throw new IllegalArgumentException("Board size must be either " + BOARD_SIZE_8 + " or " + BOARD_SIZE_16 + ".");
@@ -530,6 +641,12 @@ public class QueensService {
 		}
 	}
 
+	/**
+	 * Normalizes the submitted queen positions list and validates it is provided.
+	 *
+	 * @param positions submitted queen positions
+	 * @return same positions list when valid
+	 */
 	private List<QueensModel.Position> normalizePositions(List<QueensModel.Position> positions) {
 		if (positions == null) {
 			throw new IllegalArgumentException("Queens positions are required.");
@@ -537,6 +654,13 @@ public class QueensService {
 		return positions;
 	}
 
+	/**
+	 * Validates queen positions for board bounds, uniqueness and nonattacking placement.
+	 *
+	 * @param positions list of queen positions
+	 * @param boardSize board dimension
+	 * @param queenCount expected number of queens
+	 */
 	private void validatePositions(List<QueensModel.Position> positions, int boardSize, int queenCount) {
 		if (positions.size() != queenCount) {
 			throw new IllegalArgumentException("Exactly " + queenCount + " queens are required.");
@@ -572,6 +696,14 @@ public class QueensService {
 		}
 	}
 
+	/**
+	 * Builds a human-readable message summarizing timed solve execution results.
+	 *
+	 * @param sequential sequential solver timed result
+	 * @param threaded threaded solver timed result
+	 * @param timeBudgetMs configured time budget in milliseconds
+	 * @return formatted message summarizing solver performance and budget status
+	 */
 	private String buildTimedMessage(QueensSolver.TimedResult sequential,
 			QueensSolver.TimedResult threaded,
 			long timeBudgetMs) {
@@ -583,10 +715,23 @@ public class QueensService {
 				+ " in " + timeBudgetMs + " ms each" + suffix;
 	}
 
+	/**
+	 * Formats a millisecond duration as a fixed decimal string.
+	 *
+	 * @param ms elapsed time in milliseconds
+	 * @return formatted millisecond value
+	 */
 	private String formatMs(double ms) {
 		return String.format("%.2f", ms);
 	}
 
+	/**
+	 * Builds a concise response summary string for persistable feedback.
+	 *
+	 * @param playerId authenticated player id
+	 * @param responseKey summary key identifying the response outcome
+	 * @return summary string truncated to the maximum supported length
+	 */
 	private String buildResponseSummary(Long playerId, String responseKey) {
 		String playerName = repository.findPlayerName(playerId);
 		String safeName = playerName == null ? "Player" : playerName;

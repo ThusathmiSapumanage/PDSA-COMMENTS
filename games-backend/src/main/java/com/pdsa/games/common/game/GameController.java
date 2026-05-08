@@ -35,6 +35,12 @@ public class GameController {
 		this.gameService = gameService;
 	}
 
+	/**
+	 * Create a new game and persist it.
+	 *
+	 * @param game game payload from the request body
+	 * @return created game with generated id and HTTP 201 status
+	 */
 	@PostMapping
 	@Operation(
 			summary = "Create a game",
@@ -84,6 +90,11 @@ public class GameController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(savedGame);
 	}
 
+	/**
+	 * Retrieve all games stored in the system.
+	 *
+	 * @return list of all games with HTTP 200 status
+	 */
 	@GetMapping
 	@Operation(
 			summary = "List games",
@@ -104,6 +115,12 @@ public class GameController {
 		return ResponseEntity.ok(gameService.getAllGames());
 	}
 
+	/**
+	 * Retrieve a single game by its unique identifier.
+	 *
+	 * @param gameId id of the game to fetch
+	 * @return game details when found, otherwise HTTP 404
+	 */
 	@GetMapping("/{gameId}")
 	@Operation(
 			summary = "Get game by id",
@@ -126,6 +143,13 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
+	/**
+	 * Replace an existing game with the provided payload.
+	 *
+	 * @param gameId id of the game to update
+	 * @param game replacement payload containing new game data
+	 * @return updated game when found, otherwise HTTP 404
+	 */
 	@PutMapping("/{gameId}")
 	@Operation(
 			summary = "Replace game",
@@ -154,6 +178,13 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
+	/**
+	 * Partially update mutable fields of an existing game.
+	 *
+	 * @param gameId id of the game to patch
+	 * @param game payload containing fields to update
+	 * @return patched game when found, otherwise HTTP 404
+	 */
 	@PatchMapping("/{gameId}")
 	@Operation(
 			summary = "Partially update game",
@@ -182,6 +213,12 @@ public class GameController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
+	/**
+	 * Delete the game with the specified id.
+	 *
+	 * @param gameId id of the game to remove
+	 * @return HTTP 204 when deleted, or HTTP 404 when not found
+	 */
 	@DeleteMapping("/{gameId}")
 	@Operation(
 			summary = "Delete game",

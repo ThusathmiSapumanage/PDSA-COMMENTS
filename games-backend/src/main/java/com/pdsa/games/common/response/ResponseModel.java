@@ -9,6 +9,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 
+/**
+ * JPA entity representing a submitted answer for a game session.
+ */
 @Data
 @Entity
 @Table(name = "Response")

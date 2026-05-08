@@ -21,7 +21,12 @@ public class GameSessionController {
     @Autowired
     private GameSessionService gameSessionService;
 
-    // Create
+    /**
+     * Create a new game session.
+     *
+     * @param gameSession game session payload to store
+     * @return created game session with HTTP 201 status
+     */
     @PostMapping
     @Operation(summary = "Create a new game session", description = "Creates a new game session with the provided game ID and player ID")
     @ApiResponses(value = {
@@ -35,7 +40,11 @@ public class GameSessionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdSession);
     }
 
-    // Read All
+    /**
+     * Retrieve all game sessions.
+     *
+     * @return list of all stored game sessions
+     */
     @GetMapping
     @Operation(summary = "Get all game sessions", description = "Retrieves all game sessions")
     @ApiResponses(value = {
@@ -48,7 +57,12 @@ public class GameSessionController {
         return ResponseEntity.ok(sessions);
     }
 
-    // Read by Session ID
+    /**
+     * Retrieve a game session by its unique session ID.
+     *
+     * @param sessionId unique session identifier
+     * @return the matching game session or 404 if not found
+     */
     @GetMapping("/{sessionId}")
     @Operation(summary = "Get game session by ID", description = "Retrieves a specific game session by its session ID")
     @ApiResponses(value = {
@@ -63,7 +77,12 @@ public class GameSessionController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Read by Game ID
+    /**
+     * Retrieve all sessions associated with a specific game.
+     *
+     * @param gameId game identifier to filter sessions
+     * @return list of sessions for the given game or 404 when none exist
+     */
     @GetMapping("/game/{gameId}")
     @Operation(summary = "Get game sessions by game ID", description = "Retrieves all game sessions for a specific game")
     @ApiResponses(value = {
@@ -80,7 +99,12 @@ public class GameSessionController {
         return ResponseEntity.ok(sessions);
     }
 
-    // Read by Player ID
+    /**
+     * Retrieve all sessions associated with a specific player.
+     *
+     * @param playerId player identifier to filter sessions
+     * @return list of sessions for the player or 404 when none exist
+     */
     @GetMapping("/player/{playerId}")
     @Operation(summary = "Get game sessions by player ID", description = "Retrieves all game sessions for a specific player")
     @ApiResponses(value = {
@@ -97,7 +121,13 @@ public class GameSessionController {
         return ResponseEntity.ok(sessions);
     }
 
-    // Read by Game ID and Player ID
+    /**
+     * Retrieve all sessions for a given game and player combination.
+     *
+     * @param gameId   game identifier
+     * @param playerId player identifier
+     * @return matching sessions or 404 when none exist
+     */
     @GetMapping("/game/{gameId}/player/{playerId}")
     @Operation(summary = "Get game sessions by game ID and player ID", description = "Retrieves game sessions for a specific game and player combination")
     @ApiResponses(value = {
@@ -114,7 +144,13 @@ public class GameSessionController {
         return ResponseEntity.ok(sessions);
     }
 
-    // Update (full replacement)
+    /**
+     * Fully replace an existing game session.
+     *
+     * @param sessionId   identifier of the session to update
+     * @param gameSession replacement payload for the session
+     * @return updated game session when successful
+     */
     @PutMapping("/{sessionId}")
     @Operation(summary = "Update game session", description = "Fully updates a game session with provided game ID and player ID")
     @ApiResponses(value = {
@@ -129,7 +165,13 @@ public class GameSessionController {
         return ResponseEntity.ok(updatedSession);
     }
 
-    // Patch (partial update)
+    /**
+     * Partially update an existing game session.
+     *
+     * @param sessionId   identifier of the session to patch
+     * @param gameSession payload containing fields to update
+     * @return patched game session when successful
+     */
     @PatchMapping("/{sessionId}")
     @Operation(summary = "Partially update game session", description = "Partially updates a game session with provided fields (gameId and/or playerId)")
     @ApiResponses(value = {
@@ -144,7 +186,12 @@ public class GameSessionController {
         return ResponseEntity.ok(patchedSession);
     }
 
-    // Delete
+    /**
+     * Delete a game session by its session ID.
+     *
+     * @param sessionId identifier of the session to remove
+     * @return HTTP 204 when deletion succeeds
+     */
     @DeleteMapping("/{sessionId}")
     @Operation(summary = "Delete game session", description = "Deletes a game session by its session ID")
     @ApiResponses(value = {

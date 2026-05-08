@@ -14,7 +14,12 @@ public class GameSessionService {
     @Autowired
     private GameSessionRepository gameSessionRepository;
 
-    // Create
+    /**
+     * Save a new game session after validating required fields.
+     *
+     * @param gameSession game session payload to persist
+     * @return persisted game session model
+     */
     public GameSessionModel saveGameSession(GameSessionModel gameSession) {
         if (gameSession.getGameId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Game ID is required");
@@ -30,12 +35,21 @@ public class GameSessionService {
         return gameSessionRepository.save(gameSession);
     }
 
-    // Read All
+    /**
+     * Retrieve all stored game sessions.
+     *
+     * @return list of game sessions
+     */
     public List<GameSessionModel> getAllGameSessions() {
         return gameSessionRepository.findAll();
     }
 
-    // Read by ID
+    /**
+     * Retrieve a game session by its session ID.
+     *
+     * @param sessionId identifier of the game session
+     * @return optional game session model
+     */
     public Optional<GameSessionModel> getGameSessionById(Integer sessionId) {
         if (sessionId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session ID is required");
@@ -43,7 +57,12 @@ public class GameSessionService {
         return gameSessionRepository.findById(sessionId);
     }
 
-    // Read by Game ID
+    /**
+     * Retrieve sessions for a specific game.
+     *
+     * @param gameId game identifier to filter sessions
+     * @return list of matching game sessions
+     */
     public List<GameSessionModel> getGameSessionsByGameId(Integer gameId) {
         if (gameId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Game ID is required");
@@ -51,7 +70,12 @@ public class GameSessionService {
         return gameSessionRepository.findAllByGameId(gameId);
     }
 
-    // Read by Player ID
+    /**
+     * Retrieve sessions for a specific player.
+     *
+     * @param playerId player identifier to filter sessions
+     * @return list of matching game sessions
+     */
     public List<GameSessionModel> getGameSessionsByPlayerId(Integer playerId) {
         if (playerId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Player ID is required");
@@ -59,7 +83,13 @@ public class GameSessionService {
         return gameSessionRepository.findAllByPlayerId(playerId);
     }
 
-    // Read by Game ID and Player ID
+    /**
+     * Retrieve sessions for a specific game and player.
+     *
+     * @param gameId   game identifier
+     * @param playerId player identifier
+     * @return list of matching game sessions
+     */
     public List<GameSessionModel> getGameSessionsByGameIdAndPlayerId(Integer gameId, Integer playerId) {
         if (gameId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Game ID is required");
@@ -70,7 +100,13 @@ public class GameSessionService {
         return gameSessionRepository.findAllByGameIdAndPlayerId(gameId, playerId);
     }
 
-    // Update (full replacement)
+    /**
+     * Fully update an existing game session.
+     *
+     * @param sessionId   identifier of the session to update
+     * @param gameSession payload containing replacement session values
+     * @return updated game session model
+     */
     public GameSessionModel updateGameSession(Integer sessionId, GameSessionModel gameSession) {
         if (sessionId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session ID is required");
@@ -94,7 +130,13 @@ public class GameSessionService {
         return gameSessionRepository.save(session);
     }
 
-    // Patch (partial update)
+    /**
+     * Partially update an existing game session.
+     *
+     * @param sessionId   identifier of the session to patch
+     * @param gameSession payload containing fields to update
+     * @return patched game session model
+     */
     public GameSessionModel patchGameSession(Integer sessionId, GameSessionModel gameSession) {
         if (sessionId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session ID is required");
@@ -120,7 +162,11 @@ public class GameSessionService {
         return gameSessionRepository.save(session);
     }
 
-    // Delete
+    /**
+     * Delete a game session by its session ID.
+     *
+     * @param sessionId identifier of the session to delete
+     */
     public void deleteGameSession(Integer sessionId) {
         if (sessionId == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Session ID is required");

@@ -13,10 +13,21 @@ public class AlgorithmService {
 
     private final AlgorithmRepository algorithmRepository;
 
+    /**
+     * Construct the algorithm service.
+     *
+     * @param algorithmRepository repository used to access algorithm data
+     */
     public AlgorithmService(AlgorithmRepository algorithmRepository) {
         this.algorithmRepository = algorithmRepository;
     }
 
+    /**
+     * Save a new algorithm after validating the payload.
+     *
+     * @param algorithm algorithm data to persist
+     * @return persisted algorithm with generated id
+     */
     public AlgorithmModel saveAlgorithm(AlgorithmModel algorithm) {
         if (algorithm.getAlgorithmId() != null) {
             throw new IllegalArgumentException("algorithmId must not be provided when creating an algorithm");
@@ -30,18 +41,42 @@ public class AlgorithmService {
         return algorithmRepository.save(algorithm);
     }
 
+    /**
+     * Retrieve all stored algorithms.
+     *
+     * @return list of algorithm models
+     */
     public List<AlgorithmModel> getAllAlgorithms() {
         return algorithmRepository.findAll();
     }
 
+    /**
+     * Retrieve a single algorithm by its unique identifier.
+     *
+     * @param algorithmId identifier of the algorithm to fetch
+     * @return optional algorithm model
+     */
     public Optional<AlgorithmModel> getAlgorithmById(Integer algorithmId) {
 		return algorithmRepository.findById(algorithmId);
 	}
 
+    /**
+     * Retrieve algorithms by the associated game identifier.
+     *
+     * @param gameId game id used to filter algorithms
+     * @return list of algorithms for the specified game
+     */
     public List<AlgorithmModel> getAlgorithmsByGameId(Integer gameId) {
         return algorithmRepository.findAllByGameId(gameId);
     }
 
+    /**
+     * Update the algorithm with the given id by replacing mutable fields.
+     *
+     * @param algorithmId identifier of the algorithm to update
+     * @param algorithm payload containing new algorithm details
+     * @return updated algorithm when found; empty otherwise
+     */
     public Optional<AlgorithmModel> updateAlgorithm(Integer algorithmId, AlgorithmModel algorithm) {
 		if (algorithm.getAlgorithmId() != null && !algorithmId.equals(algorithm.getAlgorithmId())) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "gameId in path and body must match");
@@ -56,6 +91,13 @@ public class AlgorithmService {
 				});
 	}
 
+    /**
+     * Partially update selected fields of an existing algorithm.
+     *
+     * @param algorithmId identifier of the algorithm to patch
+     * @param algorithm algorithm payload containing patch fields
+     * @return patched algorithm when found; empty otherwise
+     */
     public Optional<AlgorithmModel> patchAlgorithm(Integer algorithmId, AlgorithmModel algorithm) {
         if (algorithm.getAlgorithmId() != null && !algorithmId.equals(algorithm.getAlgorithmId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "algorithmId in path and body must match");
@@ -71,6 +113,12 @@ public class AlgorithmService {
                 });
     }
 
+    /**
+     * Validate the algorithm name for required constraints.
+     *
+     * @param algorithmName algorithm name to validate
+     * @param allowNull whether null names are permitted for patch operations
+     */
     public void validateAlgorithmName(String algorithmName, boolean allowNull) {
         if (algorithmName == null) {
 			if (allowNull) {
@@ -88,6 +136,11 @@ public class AlgorithmService {
         }
     }
 
+    /**
+     * Delete the algorithm with the provided id.
+     *
+     * @param algorithmId identifier of the algorithm to delete
+     */
     public void deleteAlgorithm(Integer algorithmId) {
         algorithmRepository.deleteById(algorithmId);
     }

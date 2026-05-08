@@ -22,11 +22,20 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableMethodSecurity
+/**
+ * Spring Security configuration for JWT authentication, CORS, and request authorization.
+ */
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final String[] corsAllowedOrigins;
 
+    /**
+     * Construct security configuration with JWT filter and CORS origins.
+     *
+     * @param jwtAuthenticationFilter filter that validates JWT tokens
+     * @param corsAllowedOrigins comma-separated list of allowed CORS origins
+     */
     public SecurityConfig(
             JwtAuthenticationFilter jwtAuthenticationFilter,
             @Value("${cors.allowed-origins:http://localhost:3000,http://localhost:3001}") String corsAllowedOrigins
@@ -39,6 +48,13 @@ public class SecurityConfig {
     }
 
     @Bean
+    /**
+     * Configure the security filter chain for authentication, authorization, exception handling, and JWT filter placement.
+     *
+     * @param http Spring HttpSecurity builder
+     * @return configured security filter chain
+     * @throws Exception when configuration fails
+     */
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
@@ -83,6 +99,11 @@ public class SecurityConfig {
     }
 
     @Bean
+    /**
+     * Configure CORS settings for allowed origins, methods, headers, and exposed headers.
+     *
+     * @return CORS configuration source
+     */
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
@@ -99,6 +120,13 @@ public class SecurityConfig {
     }
 
     @Bean
+    /**
+     * Provide the Spring authentication manager from the application configuration.
+     *
+     * @param configuration authentication configuration
+     * @return authentication manager
+     * @throws Exception when the auth manager cannot be created
+     */
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }

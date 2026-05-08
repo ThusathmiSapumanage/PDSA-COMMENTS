@@ -12,6 +12,12 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+/**
+ * Service layer for Knight's Tour gameplay and validation logic.
+ * <p>
+ * This class orchestrates round generation, answer evaluation, hint creation,
+ * and persistence of algorithm execution details.
+ */
 @Service
 public class KnightsTourService {
 
@@ -28,10 +34,22 @@ public class KnightsTourService {
     private final KnightsTourRepository repository;
     private final Random random = new Random();
 
+    /**
+     * Constructs the Knight's Tour service with the repository dependency.
+     *
+     * @param repository repository used for player, session, and algorithm persistence
+     */
     public KnightsTourService(KnightsTourRepository repository) {
         this.repository = repository;
     }
 
+    /**
+     * Starts a new Knight's Tour round for the authenticated player.
+     *
+     * @param request the round start request payload
+     * @param authenticatedEmail email address of the authenticated player
+     * @return start response with session details and selected solution metadata
+     */
     @Transactional
     public KnightsTourModel.StartResponse startRound(KnightsTourModel.StartRequest request, String authenticatedEmail) {
         validateStartRequest(request);
@@ -88,6 +106,13 @@ public class KnightsTourService {
         );
     }
 
+    /**
+     * Validates a submitted Knight's Tour answer and records the response.
+     *
+     * @param request the answer submission payload containing session id and moves
+     * @param authenticatedEmail email address of the authenticated player
+     * @return answer response describing correctness, validity, and saved solution comparison
+     */
     @Transactional
     public KnightsTourModel.AnswerResponse submitAnswer(KnightsTourModel.AnswerRequest request, String authenticatedEmail) {
         validateAnswerRequest(request);
@@ -218,6 +243,13 @@ public class KnightsTourService {
         return response;
     }
 
+    /**
+     * Provides the next legal knight moves as hints for a player's current path.
+     *
+     * @param request the hint request payload containing session id and current moves
+     * @param authenticatedEmail email address of the authenticated player
+     * @return hint response with possible next moves or an empty list if none are available
+     */
     @Transactional(readOnly = true)
     public KnightsTourModel.HintResponse getHint(KnightsTourModel.HintRequest request, String authenticatedEmail) {
         validateHintRequest(request);
@@ -267,6 +299,13 @@ public class KnightsTourService {
         );
     }
 
+    /**
+     * Retrieves the saved correct Knight's Tour solution for a completed session.
+     *
+     * @param sessionId the game session identifier
+     * @param authenticatedEmail email address of the authenticated player
+     * @return correct answer response containing saved Warnsdorff and Backtracking solutions
+     */
     @Transactional(readOnly = true)
     public KnightsTourModel.CorrectAnswerResponse getCorrectAnswer(Long sessionId, String authenticatedEmail) {
         Long playerId = resolveAuthenticatedPlayerId(authenticatedEmail);
@@ -304,6 +343,13 @@ public class KnightsTourService {
         );
     }
 
+    /**
+     * Persists algorithm execution details and saves moves when the run succeeds.
+     *
+     * @param sessionId the game session identifier
+     * @param algorithmId id of the algorithm used
+     * @param result algorithm result metadata and move list
+     */
     private void saveAlgorithmRun(Long sessionId, int algorithmId, KnightsTourModel.AlgorithmResult result) {
 
         repository.saveAlgorithmExecution(
@@ -321,6 +367,13 @@ public class KnightsTourService {
         }
     }
 
+    /**
+     * Chooses the first successful solution between Warnsdorff and Backtracking.
+     *
+     * @param warnsdorff result from the Warnsdorff algorithm
+     * @param backtracking result from the Backtracking algorithm
+     * @return the selected successful algorithm result
+     */
     private KnightsTourModel.AlgorithmResult choosePrimarySolution(
             KnightsTourModel.AlgorithmResult warnsdorff,
             KnightsTourModel.AlgorithmResult backtracking
@@ -334,6 +387,12 @@ public class KnightsTourService {
         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to generate a solvable Knight's Tour round.");
     }
 
+    /**
+     * Determines whether an algorithm result represents a successful tour.
+     *
+     * @param result algorithm result metadata
+     * @return true when the result is successful and contains moves
+     */
     private boolean isSuccessful(KnightsTourModel.AlgorithmResult result) {
         return result != null
                 && "SUCCESS".equalsIgnoreCase(result.getStatus())
@@ -341,6 +400,12 @@ public class KnightsTourService {
                 && !result.getMoves().isEmpty();
     }
 
+    /**
+     * Repeatedly attempts to generate a solvable Knight's Tour round.
+     *
+     * @param boardSize the board size requested by the player
+     * @return generated round containing both algorithm results
+     */
     private GeneratedRound generateSuccessfulRound(int boardSize) {
         for (int attempt = 0; attempt < MAX_ATTEMPTS_TO_GENERATE; attempt++) {
             int startX = random.nextInt(boardSize);
@@ -358,6 +423,14 @@ public class KnightsTourService {
                 "Could not generate a Knight's Tour round after multiple attempts.");
     }
 
+    /**
+     * Executes the Warnsdorff heuristic and wraps its result in a structured response.
+     *
+     * @param boardSize size of the board
+     * @param startX zero-based start column
+     * @param startY zero-based start row
+     * @return algorithm result including status, timing, and moves
+     */
     private KnightsTourModel.AlgorithmResult executeWarnsdorff(int boardSize, int startX, int startY) {
         long started = System.nanoTime();
 
@@ -395,6 +468,14 @@ public class KnightsTourService {
         }
     }
 
+    /**
+     * Executes the backtracking algorithm with a board-size-specific timeout.
+     *
+     * @param boardSize size of the board
+     * @param startX zero-based start column
+     * @param startY zero-based start row
+     * @return algorithm result including status, timing, and moves
+     */
     private KnightsTourModel.AlgorithmResult executeBacktracking(int boardSize, int startX, int startY) {
         long started = System.nanoTime();
 
@@ -455,6 +536,14 @@ public class KnightsTourService {
         }
     }
 
+    /**
+     * Builds a Knight's Tour using Warnsdorff's heuristic.
+     *
+     * @param boardSize board dimension
+     * @param startX zero-based start column
+     * @param startY zero-based start row
+     * @return list of moves generated by the Warnsdorff algorithm
+     */
     private List<KnightsTourModel.Move> solveWarnsdorff(int boardSize, int startX, int startY) {
         boolean[][] visited = new boolean[boardSize][boardSize];
         List<KnightsTourModel.Move> moves = new ArrayList<>();
@@ -480,6 +569,15 @@ public class KnightsTourService {
         return moves;
     }
 
+    /**
+     * Selects the next move for Warnsdorff's heuristic using minimum onward move count.
+     *
+     * @param currentX current zero-based column
+     * @param currentY current zero-based row
+     * @param visited visited map of board cells
+     * @param boardSize size of the board
+     * @return the chosen next coordinates or null if no move is available
+     */
     private int[] chooseBestNextMove(int currentX, int currentY, boolean[][] visited, int boardSize) {
         List<int[]> candidates = new ArrayList<>();
 
@@ -511,6 +609,15 @@ public class KnightsTourService {
         return new int[]{chosen[0], chosen[1]};
     }
 
+    /**
+     * Counts the number of legal onward moves from a given square.
+     *
+     * @param x zero-based column
+     * @param y zero-based row
+     * @param visited visited map of board cells
+     * @param boardSize board dimension
+     * @return number of possible unvisited knight moves from the square
+     */
     private int countOnwardMoves(int x, int y, boolean[][] visited, int boardSize) {
         int count = 0;
         for (int i = 0; i < DX.length; i++) {
@@ -523,6 +630,15 @@ public class KnightsTourService {
         return count;
     }
 
+    /**
+     * Attempts to build a full tour using recursive backtracking within a deadline.
+     *
+     * @param boardSize board dimension
+     * @param startX zero-based start column
+     * @param startY zero-based start row
+     * @param deadlineNanos deadline in nanoseconds for backtracking
+     * @return complete move list when successful, or empty list on failure
+     */
     private List<KnightsTourModel.Move> solveBacktracking(int boardSize, int startX, int startY, long deadlineNanos) {
         boolean[][] visited = new boolean[boardSize][boardSize];
         List<KnightsTourModel.Move> path = new ArrayList<>();
@@ -537,6 +653,18 @@ public class KnightsTourService {
         return new ArrayList<>();
     }
 
+    /**
+     * Recursive backtracking helper that tries every legal move until the tour is complete.
+     *
+     * @param boardSize board dimension
+     * @param currentX current zero-based column
+     * @param currentY current zero-based row
+     * @param stepNo current move number in the tour
+     * @param visited visited map of board cells
+     * @param path current path of moves
+     * @param deadlineNanos deadline in nanoseconds to stop searching
+     * @return true when a full tour is found
+     */
     private boolean backtrack(
             int boardSize,
             int currentX,
@@ -574,8 +702,16 @@ public class KnightsTourService {
         return false;
     }
 
+    /**
+     * Builds ordered backtracking candidates by onward degree to improve search efficiency.
+     *
+     * @param currentX current zero-based column
+     * @param currentY current zero-based row
+     * @param visited visited map of board cells
+     * @param boardSize board dimension
+     * @return sorted candidate moves for backtracking
+     */
     private List<int[]> orderedBacktrackingCandidates(int currentX, int currentY, boolean[][] visited, int boardSize) {
-        List<int[]> candidates = new ArrayList<>();
 
         for (int i = 0; i < DX.length; i++) {
             int nx = currentX + DX[i];
@@ -590,6 +726,16 @@ public class KnightsTourService {
         return candidates;
     }
 
+    /**
+     * Validates the full submitted Knight's Tour structure against all rules.
+     *
+     * @param moves submitted move list
+     * @param boardSize expected board dimension
+     * @param startX required starting column
+     * @param startY required starting row
+     * @param expectedMoveCount expected number of moves for a complete tour
+     * @return structural validation result with reason code and completion state
+     */
     private StructuralValidationResult validateStructure(
             List<KnightsTourModel.Move> moves,
             int boardSize,
@@ -650,6 +796,15 @@ public class KnightsTourService {
         return new StructuralValidationResult(true, true, false, "VALID_TOUR");
     }
 
+    /**
+     * Validates submitted moves for hint generation without requiring tour completion.
+     *
+     * @param moves current move list
+     * @param boardSize expected board dimension
+     * @param startX required starting column
+     * @param startY required starting row
+     * @return validation result used to determine whether hints can be provided
+     */
     private StructuralValidationResult validateStructureForHint(
             List<KnightsTourModel.Move> moves,
             int boardSize,
@@ -698,6 +853,15 @@ public class KnightsTourService {
         return new StructuralValidationResult(true, false, false, "VALID_TOUR");
     }
 
+    /**
+     * Finds all legal next knight moves that have not been visited yet.
+     *
+     * @param lastMove the last submitted move
+     * @param nextStepNo the next expected step number
+     * @param visited set of already visited positions
+     * @param boardSize board dimension
+     * @return list of legal unvisited next moves
+     */
     private List<KnightsTourModel.Move> findLegalUnvisitedNextMoves(
             KnightsTourModel.Move lastMove,
             int nextStepNo,
@@ -721,6 +885,12 @@ public class KnightsTourService {
         return hintMoves;
     }
 
+    /**
+     * Builds a set of visited coordinates from a list of moves.
+     *
+     * @param moves move list to convert into visited positions
+     * @return set of visited coordinate strings
+     */
     private Set<String> buildVisitedSet(List<KnightsTourModel.Move> moves) {
         Set<String> visited = new HashSet<>();
         for (KnightsTourModel.Move move : moves) {
@@ -729,6 +899,14 @@ public class KnightsTourService {
         return visited;
     }
 
+    /**
+     * Checks whether the current move is a dead end with no unvisited legal moves.
+     *
+     * @param move last move in the current path
+     * @param visited set of already visited coordinates
+     * @param boardSize board dimension
+     * @return true when no legal unvisited moves remain
+     */
     private boolean hasNoLegalUnvisitedMove(KnightsTourModel.Move move, Set<String> visited, int boardSize) {
         for (int i = 0; i < DX.length; i++) {
             int nx = move.getX() + DX[i];
@@ -741,20 +919,51 @@ public class KnightsTourService {
         return true;
     }
 
+    /**
+     * Determines if the move from one square to another is a legal knight move.
+     *
+     * @param fromX starting column
+     * @param fromY starting row
+     * @param toX destination column
+     * @param toY destination row
+     * @return true when the move matches knight movement rules
+     */
     private boolean isKnightMove(int fromX, int fromY, int toX, int toY) {
         int dx = Math.abs(toX - fromX);
         int dy = Math.abs(toY - fromY);
         return (dx == 2 && dy == 1) || (dx == 1 && dy == 2);
     }
 
+    /**
+     * Checks whether 1-based coordinates are inside the board boundaries.
+     *
+     * @param x one-based column coordinate
+     * @param y one-based row coordinate
+     * @param boardSize board dimension
+     * @return true when the coordinates are within the board
+     */
     private boolean isWithinBoard(int x, int y, int boardSize) {
         return x >= 1 && x <= boardSize && y >= 1 && y <= boardSize;
     }
 
+    /**
+     * Checks whether zero-based coordinates are inside the board boundaries.
+     *
+     * @param x zero-based column coordinate
+     * @param y zero-based row coordinate
+     * @param boardSize board dimension
+     * @return true when the coordinates are within the zero-based board range
+     */
     private boolean isValidZeroBased(int x, int y, int boardSize) {
         return x >= 0 && x < boardSize && y >= 0 && y < boardSize;
     }
 
+    /**
+     * Normalizes the move list by step number for consistent comparison.
+     *
+     * @param moves moves to normalize and sort
+     * @return sorted list of moves by step number
+     */
     private List<KnightsTourModel.Move> normalizeMovesByStep(List<KnightsTourModel.Move> moves) {
         if (moves == null) {
             return new ArrayList<>();
@@ -765,6 +974,13 @@ public class KnightsTourService {
         return normalized;
     }
 
+    /**
+     * Compares two move sequences for exact equality.
+     *
+     * @param a first move list
+     * @param b second move list
+     * @return true when both move sequences match exactly
+     */
     private boolean areMovesExactlyEqual(List<KnightsTourModel.Move> a, List<KnightsTourModel.Move> b) {
         if (a == null || b == null || a.size() != b.size()) {
             return false;
@@ -784,6 +1000,12 @@ public class KnightsTourService {
         return true;
     }
 
+    /**
+     * Converts a structural validation reason code into a user-facing message.
+     *
+     * @param reasonCode validation failure reason code
+     * @return human-readable failure message
+     */
     private String buildStructuralFailureMessage(String reasonCode) {
         switch (reasonCode) {
             case "WRONG_START_POSITION":
@@ -805,6 +1027,17 @@ public class KnightsTourService {
         }
     }
 
+    /**
+     * Builds a compact summary string of answer validation results for analytics.
+     *
+     * @param submittedMoveCount number of moves submitted by the player
+     * @param validTour whether the tour structure is valid
+     * @param isCorrect whether the tour matches a saved solution
+     * @param matchedSavedSolution whether it matched any saved algorithm solution
+     * @param reasonCode structural validation failure or success code
+     * @param validationSource source of the validation match
+     * @return compact response summary string
+     */
     private String buildResponseSummary(
             int submittedMoveCount,
             boolean validTour,
@@ -820,6 +1053,13 @@ public class KnightsTourService {
                 ";r=" + reasonCode;
     }
 
+    /**
+     * Builds a readable comparison summary between two algorithm executions.
+     *
+     * @param warnsdorff result from the Warnsdorff algorithm
+     * @param backtracking result from the Backtracking algorithm
+     * @return comparison summary string
+     */
     private String buildComparisonSummary(
             KnightsTourModel.AlgorithmResult warnsdorff,
             KnightsTourModel.AlgorithmResult backtracking
@@ -831,10 +1071,22 @@ public class KnightsTourService {
                 BACKTRACKING_NAME + ": " + backtracking.getStatus() + " (" + backtrackingTime + " ms)";
     }
 
+    /**
+     * Converts elapsed nanoseconds to milliseconds.
+     *
+     * @param startedNano start time in nanoseconds
+     * @return elapsed time in milliseconds
+     */
     private double elapsedMs(long startedNano) {
         return (System.nanoTime() - startedNano) / 1_000_000.0;
     }
 
+    /**
+     * Normalizes algorithm status values before persisting them to the database.
+     *
+     * @param status raw status string from the algorithm result
+     * @return normalized status value for storage
+     */
     private String normalizeStatusForDb(String status) {
         if (status == null) {
             return "ERROR";
@@ -852,6 +1104,11 @@ public class KnightsTourService {
         }
     }
 
+    /**
+     * Validates the start round request payload.
+     *
+     * @param request start request payload
+     */
     private void validateStartRequest(KnightsTourModel.StartRequest request) {
         if (request == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body is required.");
@@ -864,6 +1121,11 @@ public class KnightsTourService {
         }
     }
 
+    /**
+     * Validates the answer submission payload.
+     *
+     * @param request answer request payload
+     */
     private void validateAnswerRequest(KnightsTourModel.AnswerRequest request) {
         if (request == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body is required.");
@@ -876,6 +1138,11 @@ public class KnightsTourService {
         }
     }
 
+    /**
+     * Validates the hint request payload.
+     *
+     * @param request hint request payload
+     */
     private void validateHintRequest(KnightsTourModel.HintRequest request) {
         if (request == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body is required.");
@@ -888,6 +1155,12 @@ public class KnightsTourService {
         }
     }
 
+    /**
+     * Resolves an algorithm name to its database identifier.
+     *
+     * @param algorithmName the algorithm name to look up
+     * @return matching algorithm id
+     */
     private Integer mustFindAlgorithmId(String algorithmName) {
         Integer id = repository.findAlgorithmId(algorithmName);
         if (id == null) {
@@ -896,6 +1169,12 @@ public class KnightsTourService {
         return id;
     }
 
+    /**
+     * Resolves the authenticated player's database id from their email.
+     *
+     * @param authenticatedEmail authenticated player's email address
+     * @return player id when the player exists and is valid
+     */
     private Long resolveAuthenticatedPlayerId(String authenticatedEmail) {
         if (authenticatedEmail == null || authenticatedEmail.isBlank()) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Authenticated user email is missing.");
@@ -910,6 +1189,12 @@ public class KnightsTourService {
         return playerId;
     }
 
+    /**
+     * Verifies that the session exists and belongs to the authenticated player.
+     *
+     * @param sessionId the game session identifier
+     * @param playerId authenticated player identifier
+     */
     private void ensureSessionOwnedByPlayer(Long sessionId, Long playerId) {
         if (!repository.sessionExists(sessionId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Session does not exist.");

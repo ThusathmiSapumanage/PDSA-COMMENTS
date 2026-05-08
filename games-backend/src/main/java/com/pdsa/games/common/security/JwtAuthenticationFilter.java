@@ -17,6 +17,9 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+/**
+ * Servlet filter that validates incoming JWT bearer tokens and populates the security context.
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -29,6 +32,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.jwtService = jwtService;
     }
 
+    /**
+     * Validate the JWT bearer token for each request, skip public auth endpoints, and set the Spring security context.
+     *
+     * @param request incoming servlet request
+     * @param response outgoing servlet response
+     * @param filterChain filter chain to continue processing
+     * @throws ServletException when servlet processing fails
+     * @throws IOException when I/O fails
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -79,6 +91,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * Determine whether the request should skip JWT validation because it targets a public auth endpoint.
+     *
+     * @param request incoming servlet request
+     * @param path request path
+     * @return true if the endpoint is publicly accessible without a token
+     */
     private boolean isPublicPlayerEndpoint(HttpServletRequest request, String path) {
         String method = request.getMethod();
 

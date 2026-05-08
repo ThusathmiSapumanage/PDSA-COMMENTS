@@ -13,10 +13,21 @@ public class AlgorithmExecuteService {
 
 	private final AlgorithmExecuteRepository algorithmExecuteRepository;
 
+	/**
+	 * Construct the algorithm execution service.
+	 *
+	 * @param algorithmExecuteRepository repository used to access execution records
+	 */
 	public AlgorithmExecuteService(AlgorithmExecuteRepository algorithmExecuteRepository) {
 		this.algorithmExecuteRepository = algorithmExecuteRepository;
 	}
 
+	/**
+	 * Save a new algorithm execution record after validating required fields.
+	 *
+	 * @param algorithmExecute execution payload to persist
+	 * @return persisted execution record
+	 */
 	public AlgorithmExecuteModel saveAlgorithmExecute(AlgorithmExecuteModel algorithmExecute) {
 		if (algorithmExecute == null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body is required");
@@ -54,15 +65,33 @@ public class AlgorithmExecuteService {
 		return algorithmExecuteRepository.save(algorithmExecute);
 	}
 
+	/**
+	 * Retrieve all execution records.
+	 *
+	 * @return list of all execution records
+	 */
 	public List<AlgorithmExecuteModel> getAllAlgorithmExecutions() {
 		return algorithmExecuteRepository.findAll();
 	}
 
+	/**
+	 * Retrieve a single execution record by session and algorithm ids.
+	 *
+	 * @param sessionId session identifier
+	 * @param algorithmId algorithm identifier
+	 * @return optional execution record
+	 */
 	public Optional<AlgorithmExecuteModel> getAlgorithmExecuteById(Integer sessionId, Integer algorithmId) {
 		validatePathIds(sessionId, algorithmId);
 		return algorithmExecuteRepository.findById(new AlgorithmExecuteId(sessionId, algorithmId));
 	}
 
+	/**
+	 * Retrieve execution records by session id.
+	 *
+	 * @param sessionId session identifier
+	 * @return list of execution records for the session
+	 */
 	public List<AlgorithmExecuteModel> getAlgorithmExecutionsBySessionId(Integer sessionId) {
 		if (sessionId == null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sessionId is required");
@@ -70,6 +99,12 @@ public class AlgorithmExecuteService {
 		return algorithmExecuteRepository.findAllBySessionId(sessionId);
 	}
 
+	/**
+	 * Retrieve execution records by game id.
+	 *
+	 * @param gameId game identifier
+	 * @return list of execution records for the game
+	 */
 	public List<AlgorithmExecuteModel> getAlgorithmExecutionsByGameId(Integer gameId) {
 		if (gameId == null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "gameId is required");
@@ -77,6 +112,12 @@ public class AlgorithmExecuteService {
 		return algorithmExecuteRepository.findAllByGameId(gameId);
 	}
 
+	/**
+	 * Retrieve execution records by output result.
+	 *
+	 * @param outputResult result type to filter by
+	 * @return list of execution records matching the output result
+	 */
 	public List<AlgorithmExecuteModel> getAlgorithmExecutionsByOutputResult(AlgorithmExecuteOutputResult outputResult) {
 		if (outputResult == null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "outputResult is required");
@@ -84,6 +125,14 @@ public class AlgorithmExecuteService {
 		return algorithmExecuteRepository.findAllByOutputResult(outputResult.name());
 	}
 
+	/**
+	 * Replace an existing execution record.
+	 *
+	 * @param sessionId session identifier
+	 * @param algorithmId algorithm identifier
+	 * @param algorithmExecute replacement execution payload
+	 * @return updated execution record when found, or empty otherwise
+	 */
 	public Optional<AlgorithmExecuteModel> updateAlgorithmExecute(
 			Integer sessionId,
 			Integer algorithmId,
@@ -107,6 +156,14 @@ public class AlgorithmExecuteService {
 				});
 	}
 
+	/**
+	 * Partially update an existing execution record.
+	 *
+	 * @param sessionId session identifier
+	 * @param algorithmId algorithm identifier
+	 * @param algorithmExecute payload containing fields to patch
+	 * @return updated execution record when found, or empty otherwise
+	 */
 	public Optional<AlgorithmExecuteModel> patchAlgorithmExecute(
 			Integer sessionId,
 			Integer algorithmId,
@@ -144,6 +201,12 @@ public class AlgorithmExecuteService {
 				});
 	}
 
+	/**
+	 * Delete an execution record by composite id.
+	 *
+	 * @param sessionId session identifier
+	 * @param algorithmId algorithm identifier
+	 */
 	public void deleteAlgorithmExecute(Integer sessionId, Integer algorithmId) {
 		validatePathIds(sessionId, algorithmId);
 
@@ -155,6 +218,12 @@ public class AlgorithmExecuteService {
 		algorithmExecuteRepository.deleteById(id);
 	}
 
+	/**
+	 * Validate that both composite path identifiers are present.
+	 *
+	 * @param sessionId session identifier
+	 * @param algorithmId algorithm identifier
+	 */
 	private void validatePathIds(Integer sessionId, Integer algorithmId) {
 		if (sessionId == null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "sessionId is required");
@@ -165,6 +234,13 @@ public class AlgorithmExecuteService {
 		}
 	}
 
+	/**
+	 * Validate that path ids and body ids match when supplied.
+	 *
+	 * @param sessionId session identifier from the path
+	 * @param algorithmId algorithm identifier from the path
+	 * @param algorithmExecute payload containing body ids
+	 */
 	private void validatePathAndBodyIds(
 			Integer sessionId,
 			Integer algorithmId,
@@ -187,6 +263,12 @@ public class AlgorithmExecuteService {
 		}
 	}
 
+	/**
+	 * Validate the execution time value.
+	 *
+	 * @param executionTimeMs execution duration in milliseconds
+	 * @param allowNull whether null is allowed for patch operations
+	 */
 	private void validateExecutionTimeMs(BigDecimal executionTimeMs, boolean allowNull) {
 		if (executionTimeMs == null) {
 			if (allowNull) {
@@ -203,6 +285,12 @@ public class AlgorithmExecuteService {
 		}
 	}
 
+	/**
+	 * Validate the output result enumeration.
+	 *
+	 * @param outputResult execution output result
+	 * @param allowNull whether null is allowed for patch operations
+	 */
 	private void validateOutputResult(AlgorithmExecuteOutputResult outputResult, boolean allowNull) {
 		if (outputResult == null && !allowNull) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "outputResult is required");

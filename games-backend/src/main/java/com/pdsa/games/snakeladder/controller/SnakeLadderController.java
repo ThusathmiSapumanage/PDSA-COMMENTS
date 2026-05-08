@@ -37,10 +37,22 @@ public class SnakeLadderController {
     private final SnakeLadderService service;
     private final Map<Integer, Integer> sessionAnswers = new ConcurrentHashMap<>();
 
+    /**
+     * Constructs the controller with the SnakeLadderService dependency.
+     *
+     * @param service service layer for Snake and Ladder game operations
+     */
     public SnakeLadderController(SnakeLadderService service) {
         this.service = service;
     }
 
+    /**
+     * Starts a new Snake and Ladder round by generating a random board, running
+     * both solution algorithms, saving the game session, and returning answer choices.
+     *
+     * @param request round start request payload containing playerId and board size
+     * @return response with session data, board items, algorithm timing, and choices
+     */
     @PostMapping("/start")
     public ResponseEntity<StartRoundResponse> startRound(@RequestBody StartRoundRequest request) {
         try {
@@ -92,6 +104,15 @@ public class SnakeLadderController {
             @ApiResponse(responseCode = "400", description = "Invalid request"),
             @ApiResponse(responseCode = "500", description = "Server error")
     })
+    /**
+     * Submits the player's selected answer and returns whether it was correct.
+     *
+     * The real correct answer is stored server-side so the submitted request body
+     * cannot be trusted.
+     *
+     * @param request answer submission payload containing sessionId and playerAnswer
+     * @return response with WIN/DRAW/LOSE outcome and user-facing message
+     */
     public ResponseEntity<SubmitAnswerResponse> submitAnswer(@RequestBody SubmitAnswerRequest request) {
         try {
             int sessionId = request.getSessionId();
@@ -178,6 +199,9 @@ public class SnakeLadderController {
     // Global Exception Handler
     // =========================================================================
 
+    /**
+     * Handles invalid JSON payloads and returns a structured bad request error.
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, String>> handleJsonParseError(HttpMessageNotReadableException ex) {
         ex.printStackTrace();

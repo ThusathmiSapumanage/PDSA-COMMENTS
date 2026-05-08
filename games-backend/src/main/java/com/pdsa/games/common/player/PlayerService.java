@@ -28,6 +28,12 @@ public class PlayerService {
 		this.passwordEncoder = new BCryptPasswordEncoder();
 	}
 
+	/**
+	 * Save a new player after validating the provided profile data.
+	 *
+	 * @param player player profile to create
+	 * @return created player model with encoded password
+	 */
 	public PlayerModel savePlayer(PlayerModel player) {
 		if (player.getPlayerId() != null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -47,10 +53,22 @@ public class PlayerService {
 		return playerRepository.findAll();
 	}
 
+	/**
+	 * Retrieve all players.
+	 *
+	 * @return list of player models
+	 */
 	public Optional<PlayerModel> getPlayerById(Integer playerId) {
 		return playerRepository.findById(playerId);
 	}
 
+	/**
+	 * Authenticate a player by email and password.
+	 *
+	 * @param playerEmail player login email
+	 * @param playerPassword player login password
+	 * @return optional player model when authentication succeeds
+	 */
 	public Optional<PlayerModel> loginPlayer(String playerEmail, String playerPassword) {
 		if (playerEmail == null || playerEmail.isBlank()) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Please enter your email address.");
@@ -64,6 +82,13 @@ public class PlayerService {
 				.filter(player -> passwordEncoder.matches(playerPassword, player.getPlayerPassword()));
 	}
 
+	/**
+	 * Fully update an existing player profile.
+	 *
+	 * @param playerId identifier of the player to update
+	 * @param player replacement player payload
+	 * @return optional updated player model
+	 */
 	public Optional<PlayerModel> updatePlayer(Integer playerId, PlayerModel player) {
 		if (player.getPlayerId() != null && !playerId.equals(player.getPlayerId())) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -83,6 +108,13 @@ public class PlayerService {
 				});
 	}
 
+	/**
+	 * Partially update fields on an existing player profile.
+	 *
+	 * @param playerId identifier of the player to patch
+	 * @param player patch payload containing updated fields
+	 * @return optional patched player model
+	 */
 	public Optional<PlayerModel> patchPlayer(Integer playerId, PlayerModel player) {
 		if (player.getPlayerId() != null && !playerId.equals(player.getPlayerId())) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -108,6 +140,12 @@ public class PlayerService {
 				});
 	}
 
+	/**
+	 * Validate the provided player name.
+	 *
+	 * @param playerName name to validate
+	 * @param allowNull whether null is permitted for patch operations
+	 */
 	private void validatePlayerName(String playerName, boolean allowNull) {
 		if (playerName == null) {
 			if (allowNull) {
@@ -126,6 +164,12 @@ public class PlayerService {
 		}
 	}
 
+	/**
+	 * Validate the provided player email address.
+	 *
+	 * @param playerEmail email to validate
+	 * @param allowNull whether null is permitted for patch operations
+	 */
 	private void validatePlayerEmail(String playerEmail, boolean allowNull) {
 		if (playerEmail == null) {
 			if (allowNull) {
@@ -154,6 +198,12 @@ public class PlayerService {
 		}
 	}
 
+	/**
+	 * Validate the provided player password.
+	 *
+	 * @param playerPassword password to validate
+	 * @param allowNull whether null is permitted for patch operations
+	 */
 	private void validatePlayerPassword(String playerPassword, boolean allowNull) {
 		if (playerPassword == null) {
 			if (allowNull) {
@@ -177,6 +227,11 @@ public class PlayerService {
 		}
 	}
 
+	/**
+	 * Delete a player by their identifier.
+	 *
+	 * @param playerId identifier of the player to delete
+	 */
 	public void deletePlayer(Integer playerId) {
 		playerRepository.deleteById(playerId);
 	}

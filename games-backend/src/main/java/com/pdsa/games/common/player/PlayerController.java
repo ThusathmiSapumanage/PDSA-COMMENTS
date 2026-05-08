@@ -49,6 +49,12 @@ public class PlayerController {
 	private record PlayerLoginResponse(String tokenType, String accessToken, long expiresInSeconds) {
 	}
 
+	/**
+	 * Authenticate a player and return a JWT access token.
+	 *
+	 * @param loginRequest credentials containing email and password
+	 * @return bearer token response when authentication succeeds
+	 */
 	@PostMapping("/login")
 	@SecurityRequirements(value = {})
 	@Operation(
@@ -74,6 +80,12 @@ public class PlayerController {
 				.orElseGet(() -> ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
 	}
 
+	/**
+	 * Create a new player profile.
+	 *
+	 * @param player player payload for the new profile
+	 * @return created player resource with HTTP 201 status
+	 */
 	@PostMapping
 	@SecurityRequirements(value = {})
 	@Operation(
@@ -125,6 +137,11 @@ public class PlayerController {
 		return ResponseEntity.status(HttpStatus.CREATED).body(savedPlayer);
 	}
 
+	/**
+	 * Retrieve all player profiles.
+	 *
+	 * @return list of all stored players
+	 */
 	@GetMapping
 	@Operation(
 			summary = "List players",
@@ -145,6 +162,12 @@ public class PlayerController {
 		return ResponseEntity.ok(playerService.getAllPlayers());
 	}
 
+	/**
+	 * Retrieve a single player by id.
+	 *
+	 * @param playerId unique player identifier
+	 * @return player details when found, otherwise HTTP 404
+	 */
 	@GetMapping("/{playerId}")
 	@Operation(
 			summary = "Get player by id",
@@ -167,6 +190,13 @@ public class PlayerController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
+	/**
+	 * Replace an existing player profile.
+	 *
+	 * @param playerId target player's id
+	 * @param player full replacement player payload
+	 * @return updated player when the id exists, otherwise HTTP 404
+	 */
 	@PutMapping("/{playerId}")
 	@Operation(
 			summary = "Replace player",
@@ -195,6 +225,13 @@ public class PlayerController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
+	/**
+	 * Partially update an existing player profile.
+	 *
+	 * @param playerId target player's id
+	 * @param player patch payload containing fields to update
+	 * @return patched player when the id exists, otherwise HTTP 404
+	 */
 	@PatchMapping("/{playerId}")
 	@Operation(
 			summary = "Partially update player",
@@ -223,6 +260,12 @@ public class PlayerController {
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
+	/**
+	 * Delete a player profile by id.
+	 *
+	 * @param playerId identifier of the player to delete
+	 * @return HTTP 204 when deleted successfully
+	 */
 	@DeleteMapping("/{playerId}")
 	@Operation(
 			summary = "Delete player",

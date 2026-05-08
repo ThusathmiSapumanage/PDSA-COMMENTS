@@ -32,10 +32,21 @@ public class AlgorithmController {
 
     private final AlgorithmService algorithmService;
 
+    /**
+     * Creates a new controller instance using the provided algorithm service.
+     *
+     * @param algorithmService service that handles algorithm persistence and validation
+     */
     public AlgorithmController(AlgorithmService algorithmService) {
     this.algorithmService = algorithmService;
     }
 
+    /**
+     * Create a new algorithm and persist it.
+     *
+     * @param algorithm algorithm payload from the request body
+     * @return created algorithm with generated id and HTTP 201 status
+     */
     @PostMapping
     @Operation(
         summary = "Create an algorithm",
@@ -85,6 +96,11 @@ public class AlgorithmController {
     return ResponseEntity.status(HttpStatus.CREATED).body(savedAlgorithm);
     }
 
+    /**
+     * Retrieve all algorithms stored in the database.
+     *
+     * @return list of all algorithms and HTTP 200 status
+     */
     @GetMapping
     @Operation(
         summary = "List algorithms",
@@ -105,6 +121,12 @@ public class AlgorithmController {
     return ResponseEntity.ok(algorithmService.getAllAlgorithms());
     }
 
+    /**
+     * Retrieve algorithms linked to a specific game id.
+     *
+     * @param gameId identifier of the game whose algorithms should be returned
+     * @return list of matching algorithms or HTTP 404 when none are found
+     */
     @GetMapping("/game/{gameId}")
     @Operation(
         summary = "List algorithms by game id",
@@ -133,6 +155,12 @@ public class AlgorithmController {
     return ResponseEntity.ok(algorithms);
     }
 
+    /**
+     * Get a single algorithm by its unique identifier.
+     *
+     * @param algorithmId identifier of the algorithm to fetch
+     * @return algorithm details when found, otherwise HTTP 404
+     */
     @GetMapping("/{algorithmId}")
     @Operation(
         summary = "Get algorithm by id",
@@ -155,6 +183,13 @@ public class AlgorithmController {
         .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * Replace an existing algorithm with the provided algorithm payload.
+     *
+     * @param algorithmId identifier of the algorithm to update
+     * @param algorithm replacement payload containing updated algorithm fields
+     * @return updated algorithm when found, otherwise HTTP 404
+     */
     @PutMapping("/{algorithmId}")
     @Operation(
         summary = "Replace algorithm",
@@ -183,6 +218,13 @@ public class AlgorithmController {
         .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * Partially update an existing algorithm.
+     *
+     * @param algorithmId identifier of the algorithm to patch
+     * @param algorithm payload containing fields to update
+     * @return patched algorithm when found, otherwise HTTP 404
+     */
     @PatchMapping("/{algorithmId}")
     @Operation(
         summary = "Partially update algorithm",
@@ -211,6 +253,12 @@ public class AlgorithmController {
         .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * Delete the algorithm with the specified id.
+     *
+     * @param algorithmId identifier of the algorithm to remove
+     * @return HTTP 204 when deleted, or HTTP 404 if the algorithm does not exist
+     */
     @DeleteMapping("/{algorithmId}")
     @Operation(
         summary = "Delete algorithm",

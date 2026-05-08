@@ -12,15 +12,32 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Repository for Sixteen Queens persistence operations.
+ *
+ * Encapsulates JDBC access for player lookup, session lifecycle, solution storage,
+ * and algorithm execution metrics.
+ */
 @Repository
 public class QueensRepository {
 
 	private final JdbcTemplate jdbcTemplate;
 
+	/**
+	 * Constructs the repository with the configured JdbcTemplate.
+	 *
+	 * @param jdbcTemplate Spring JDBC template
+	 */
 	public QueensRepository(JdbcTemplate jdbcTemplate) {
 		this.jdbcTemplate = jdbcTemplate;
 	}
 
+	/**
+	 * Finds a player id by email.
+	 *
+	 * @param playerEmail player's email address
+	 * @return player id or null when not found
+	 */
 	public Long findPlayerIdByEmail(String playerEmail) {
 		try {
 			return jdbcTemplate.queryForObject(
@@ -33,6 +50,12 @@ public class QueensRepository {
 		}
 	}
 
+	/**
+	 * Checks whether a player exists by id.
+	 *
+	 * @param playerId player database id
+	 * @return true when the player exists
+	 */
 	public boolean playerExists(Long playerId) {
 		Integer count = jdbcTemplate.queryForObject(
 				"SELECT COUNT(*) FROM Player WHERE Player_Id = ?",
@@ -42,6 +65,13 @@ public class QueensRepository {
 		return count != null && count > 0;
 	}
 
+	/**
+	 * Verifies that a session belongs to the given player.
+	 *
+	 * @param sessionId game session id
+	 * @param playerId player id
+	 * @return true when the session is owned by the player
+	 */
 	public boolean sessionBelongsToPlayer(Long sessionId, Long playerId) {
 		Integer count = jdbcTemplate.queryForObject(
 				"SELECT COUNT(*) FROM Game_Session WHERE Session_Id = ? AND Player_Id = ?",
@@ -52,6 +82,12 @@ public class QueensRepository {
 		return count != null && count > 0;
 	}
 
+	/**
+	 * Ensures a game record exists and returns its id.
+	 *
+	 * @param gameName game name
+	 * @return existing or newly created game id
+	 */
 	public Integer ensureGameId(String gameName) {
 		Integer id = jdbcTemplate.query(
 				"SELECT Game_Id FROM Game WHERE Game_Name = ?",
@@ -69,6 +105,13 @@ public class QueensRepository {
 		);
 	}
 
+	/**
+	 * Ensures an algorithm record exists for the given game and returns its id.
+	 *
+	 * @param gameId game id
+	 * @param algorithmName algorithm name
+	 * @return existing or newly created algorithm id
+	 */
 	public Integer ensureAlgorithmId(Integer gameId, String algorithmName) {
 		Integer id = jdbcTemplate.query(
 				"SELECT Algorithm_Id FROM Algorithm WHERE Algorithm_Name = ?",
@@ -86,6 +129,13 @@ public class QueensRepository {
 		);
 	}
 
+	/**
+	 * Creates a new game session for a player.
+	 *
+	 * @param gameId game id
+	 * @param playerId player id
+	 * @return generated session id
+	 */
 	public Long createGameSession(Integer gameId, Long playerId) {
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -106,6 +156,12 @@ public class QueensRepository {
 		return key.longValue();
 	}
 
+	/**
+	 * Saves the initial Sixteen Queens game row for a session.
+	 *
+	 * @param sessionId session id
+	 * @param totalSolutions total number of solutions for the configuration
+	 */
 	public void saveSixteenQueensGame(Long sessionId, int totalSolutions) {
 		jdbcTemplate.update(
 				"INSERT INTO Sixteen_Queens_Game (Session_Id, Total_Solutions, Solutions_Discovered) VALUES (?, ?, 0)",
@@ -113,6 +169,14 @@ public class QueensRepository {
 		);
 	}
 
+	/**
+	 * Saves algorithm execution metrics for a solve run.
+	 *
+	 * @param sessionId session id
+	 * @param algorithmId algorithm id
+	 * @param executionTimeMs runtime in milliseconds
+	 * @param outputResult status label or result
+	 */
 	public void saveAlgorithmExecution(Long sessionId, int algorithmId, double executionTimeMs, String outputResult) {
 		jdbcTemplate.update(
 				"INSERT INTO Algorithm_Execute (Session_Id, Algorithm_Id, Execution_Time_MS, Output_Result) VALUES (?, ?, ?, ?)",
@@ -120,6 +184,12 @@ public class QueensRepository {
 		);
 	}
 
+	/**
+	 * Saves produced solution skeletons and queen locations for a session.
+	 *
+	 * @param sessionId session id
+	 * @param solutions list of solution rows where each entry is column positions per row
+	 */
 	public void saveSolutions(Long sessionId, List<int[]> solutions) {
 		if (solutions.isEmpty()) {
 			return;
@@ -178,6 +248,13 @@ public class QueensRepository {
 		);
 	}
 
+	/**
+	 * Inserts a newly discovered solution and marks its queen locations.
+	 *
+	 * @param sessionId session id
+	 * @param positions queen positions for the discovered solution
+	 * @return generated solution id
+	 */
 	public int insertDiscoveredSolution(Long sessionId, List<QueensModel.Position> positions) {
 		Integer maxId = jdbcTemplate.queryForObject(
 				"SELECT COALESCE(MAX(Solution_Id), 0) FROM Solution WHERE Session_Id = ?",
@@ -218,6 +295,13 @@ public class QueensRepository {
 		return newSolutionId;
 	}
 
+	/**
+	 * Finds an existing solution id matching the given queen positions.
+	 *
+	 * @param sessionId session id
+	 * @param positions submitted queen positions
+	 * @return matching solution id or null when none exists
+	 */
 	public Integer findMatchingSolutionId(Long sessionId, List<QueensModel.Position> positions) {
 		if (positions.isEmpty()) {
 			return null;
@@ -247,6 +331,13 @@ public class QueensRepository {
 				params.toArray());
 	}
 
+	/**
+	 * Checks whether a solution has already been discovered.
+	 *
+	 * @param sessionId session id
+	 * @param solutionId solution id
+	 * @return true when the solution is already discovered
+	 */
 	public boolean isSolutionDiscovered(Long sessionId, int solutionId) {
 		Integer count = jdbcTemplate.queryForObject(
 				"SELECT COUNT(*) FROM Solution WHERE Session_Id = ? AND Solution_Id = ? AND Is_Discovered = true",
@@ -257,6 +348,12 @@ public class QueensRepository {
 		return count != null && count > 0;
 	}
 
+	/**
+	 * Marks a solution as discovered and increments the discovered count.
+	 *
+	 * @param sessionId session id
+	 * @param solutionId solution id
+	 */
 	public void markSolutionDiscovered(Long sessionId, int solutionId) {
 		jdbcTemplate.update(
 				"UPDATE Solution SET Is_Discovered = true WHERE Session_Id = ? AND Solution_Id = ?",
@@ -268,6 +365,11 @@ public class QueensRepository {
 		);
 	}
 
+	/**
+	 * Resets discovered solution status for the session.
+	 *
+	 * @param sessionId session id
+	 */
 	public void resetDiscovered(Long sessionId) {
 		jdbcTemplate.update(
 				"UPDATE Solution SET Is_Discovered = false WHERE Session_Id = ?",
@@ -279,6 +381,12 @@ public class QueensRepository {
 		);
 	}
 
+	/**
+	 * Updates the cached total solution count for a session.
+	 *
+	 * @param sessionId session id
+	 * @param totalSolutions total solution count
+	 */
 	public void updateTotalSolutions(Long sessionId, int totalSolutions) {
 		jdbcTemplate.update(
 				"UPDATE Sixteen_Queens_Game SET Total_Solutions = ? WHERE Session_Id = ?",
@@ -286,6 +394,12 @@ public class QueensRepository {
 		);
 	}
 
+	/**
+	 * Reads the total solution count stored for the session.
+	 *
+	 * @param sessionId session id
+	 * @return total solutions count
+	 */
 	public Integer getTotalSolutions(Long sessionId) {
 		return jdbcTemplate.queryForObject(
 				"SELECT Total_Solutions FROM Sixteen_Queens_Game WHERE Session_Id = ?",
@@ -294,6 +408,12 @@ public class QueensRepository {
 		);
 	}
 
+	/**
+	 * Reads the number of discovered solutions for the session.
+	 *
+	 * @param sessionId session id
+	 * @return discovered count
+	 */
 	public Integer getDiscoveredCount(Long sessionId) {
 		return jdbcTemplate.queryForObject(
 				"SELECT Solutions_Discovered FROM Sixteen_Queens_Game WHERE Session_Id = ?",
@@ -302,6 +422,14 @@ public class QueensRepository {
 		);
 	}
 
+	/**
+	 * Persists a player response summary for the session.
+	 *
+	 * @param sessionId session id
+	 * @param responseSummary summary text
+	 * @param isCorrect true when the response was correct
+	 * @return generated response id
+	 */
 	public Long saveResponse(Long sessionId, String responseSummary, boolean isCorrect) {
 		KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -324,6 +452,12 @@ public class QueensRepository {
 		return key.longValue();
 	}
 
+	/**
+	 * Finds a player's display name.
+	 *
+	 * @param playerId player id
+	 * @return player name
+	 */
 	public String findPlayerName(Long playerId) {
 		return jdbcTemplate.queryForObject(
 				"SELECT Player_Name FROM Player WHERE Player_Id = ?",
@@ -332,6 +466,13 @@ public class QueensRepository {
 		);
 	}
 
+	/**
+	 * Looks up cached solution counts and timings for a board configuration.
+	 *
+	 * @param boardSize board dimension
+	 * @param queenCount queen count
+	 * @return cached count metadata or null when not found
+	 */
 	public CachedCount findCachedCount(int boardSize, int queenCount) {
 		try {
 			return jdbcTemplate.queryForObject(
@@ -350,6 +491,15 @@ public class QueensRepository {
 		}
 	}
 
+	/**
+	 * Inserts or updates cached solution counts and solver timings.
+	 *
+	 * @param boardSize board dimension
+	 * @param queenCount queen count
+	 * @param totalSolutions total number of solutions
+	 * @param sequentialMs sequential solver time
+	 * @param threadedMs threaded solver time
+	 */
 	public void insertCachedCount(int boardSize, int queenCount, int totalSolutions,
 								   double sequentialMs, double threadedMs) {
 		jdbcTemplate.update(
